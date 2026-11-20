@@ -8,7 +8,7 @@ Why it is built this way, conventions, pitfalls and open items: [design_notes.md
 
 ```
 index.html            start page: one card per simulation
-assets/               noir.css (the site's look), sim.js (load a build, send commands, controls), favicon
+assets/               noir.css (the site's look), sim.js (load a build, send commands, controls), fonts/, favicon
 gyroscope/            Vorlesungskreisel: index.html + gyroscope.js (page), sim/ (web build, committed)
 unity-simulations/    the Unity project (Unity 6000.6.4f1, URP): Assets/Shared (noir), Assets/Gyroscope, …
 .github/workflows/    pages.yml: publishes the site on a site-v* tag

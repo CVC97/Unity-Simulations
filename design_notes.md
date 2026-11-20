@@ -36,7 +36,7 @@ unity-simulations/Assets/Shared/        the noir look and what every simulation 
   Editor/                   NoirEditor (FindInScene, labels, smooth cylinder), SimBuild (web builds into the site)
 unity-simulations/Assets/Gyroscope/     the Vorlesungskreisel: scene, apparatus, controller, helpers, bridge, physics, tests, setup
 unity-simulations/Assets/WebGLTemplates/Noir   loading screen of the full-window version (<sim>/sim/index.html)
-assets/                     the site: noir.css, sim.js
+assets/                     the site: noir.css, sim.js, fonts/ (Bebas Neue, Inter; SIL OFL)
 <name>/                     one simulation's page (index.html + <name>.js) and its build (sim/)
 ```
 
@@ -125,11 +125,36 @@ after a push), the switches only say what *may* be shown. All switches off = the
 
 - **Plain static pages**, no framework and no build step: a few pages with sliders and text don't need one, and Carlo
   reads Python/C more easily than TypeScript. Shared look in `assets/noir.css`, shared code in `assets/sim.js`
-  (loading with progress and errors, command queue, slider/switch/button builders).
-- **One simulation, several scenarios** per page (chips): one WebGL load; each chip sends a complete preset and swaps
-  controls and text. Vorlesungskreisel: Hängend, Ausbalanciert (preset + automatic push), Kopflastig, Frei.
-- Always noir, German, formal "Sie". No external fonts or CDNs (GDPR).
-- `<sim>/sim/index.html` (from the Noir template) is the full-window version without text, linked as "Vollbild".
+  (loading with progress and errors, command queue, wheel guard, fullscreen, control builders).
+- **One simulation, several scenarios** per page (tabs): one WebGL load; each tab sends a complete preset and swaps
+  controls, display chips and text. Vorlesungskreisel: Hängend, Ausbalanciert (preset + automatic push), Kopflastig, Frei.
+- Always noir, German, formal "Sie". Fonts are bundled (`assets/fonts`, woff2 from Fontsource, OFL): no external
+  fonts or CDNs (GDPR). Bebas Neue has one weight, so headings are weight 400 (no faux bold).
+
+**The simulation block** (Carlo, 2026-11-20: the first panel looked "all over the place"): one bordered block of
+scenario tabs on top of the stage, a toolbar under it, a side panel beside it (below it on narrow screens).
+- Sharp corners everywhere; every button, tab and chip is `--control` high (2.25 rem). No underlined links: navigation
+  is small caps with a red bar growing in on hover; buttons are bordered boxes.
+- **Readouts on the stage** as a HUD (top left), not in the panel: they belong to what is seen.
+- **Toolbar**: pause/play and restart as icon buttons, Stoß as the one red primary button, **Tempo as a slider**
+  (0.05–1 × real time; Carlo: not a Zeitlupe button).
+- **Side panel**: *Versuch* (only this scenario's sliders; start mode as a segmented control) and *Anzeige* (display
+  chips in the simulation's colours, vectors by symbol; a master switch greys them out but keeps their state). Each
+  scenario lists only the chips that can show something there (no nutation cones while there is torque, no D⃗ and
+  precession cone while balanced); the simulation gates the cones by physics anyway.
+  Labels and trail have no chips (Carlo): they follow the master switch only. Each label already hides with its vector
+  (`VectorLabel`) or cone (ω_P, `PrecessionDisplay`), so labels are coupled to what they label.
+- On wide screens the panel is as tall as tabs + stage + toolbar (`contain: size`) and scrolls inside.
+- **Fullscreen** takes the whole block (stage, toolbar, panel; the panel hides on narrow screens) via the Fullscreen
+  API, Esc returns; without the API (iPhone) a fixed overlay. This replaced the header link to `sim/`, which had no
+  way back. The full-window build `<sim>/sim/` still exists and now has a "Zurück" link to its page.
+- **Mouse wheel**: over the canvas it scrolls the page until the simulation is clicked; then it zooms until the pointer
+  leaves the stage (always in fullscreen). A hint says so. Done in the page (`sim.js`, a capture listener on window
+  that keeps the event from Unity), no change in Unity.
+- **Text** spans the page width in two columns (h2 across both), instead of one narrow column beside empty space.
+- Numbers in German notation (decimal comma).
+- Open: English as the main language with a header toggle was asked for and then put on hold (2026-11-20) – the
+  simulation itself stays German (D for the torque) in any case.
 
 
 ## 7 Build and deploy
@@ -170,6 +195,7 @@ after a push), the switches only say what *may* be shown. All switches off = the
 ## 10 Open items
 
 - Carlo's disk picture (`DiskArt.png`); real masses and sizes of the lecture apparatus, if anyone measures them.
-- Touch: the orbit camera has no touch rotation; the page is usable on phones only for watching.
-- Mouse wheel over the canvas zooms instead of scrolling the page.
+- Touch orbit (one finger) and pinch zoom (two) are in `OrbitCamera` (Shared) since 2026-11-20; they need a rebuild
+  and a test on a real phone/tablet. The precession repo's copy of `OrbitCamera` doesn't have them.
+- Page language: English + German toggle on hold (section 6).
 - The precession repo's design notes still describe the lab/module side; keep any physics fix in mind for both copies.

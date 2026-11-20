@@ -35,6 +35,10 @@ public class OrbitCamera : MonoBehaviour {
     private bool dragging;
     private float startYaw, startPitch, startDistance;                                 // the scene's view, for ResetView
     private Vector3 startOffset;
+    private int touchCount;                                                             // fingers down in the last frame
+    private bool touchOrbit;                                                            // this one-finger gesture orbits
+    private Vector2 lastTouch;                                                          // px
+    private float lastSpread;                                                           // px between two fingers
 
 
     private bool PointerOverUI() =>
@@ -73,6 +77,10 @@ public class OrbitCamera : MonoBehaviour {
 
 
     void Update() {
+        if (UpdateTouch()) {
+            return;                                                                     // fingers have the camera this frame
+        }
+
         Mouse mouse = Mouse.current;
         if (mouse == null) {
             return;                                                                     // e.g. a device without mouse
@@ -101,6 +109,52 @@ public class OrbitCamera : MonoBehaviour {
             distance = Mathf.Clamp(distance, minDistance, maxDistance);
             
         }
+    }
+
+
+    // Touch (phones, tablets, touch screens in the lecture hall): one finger orbits like the mouse drag, two fingers
+    // pinch to zoom. Positions instead of deltas, so a change in the number of fingers never makes the view jump: each
+    // change starts a new gesture from where the fingers are. Returns true while fingers are down.
+    private bool UpdateTouch() {
+        Touchscreen screen = Touchscreen.current;
+        if (screen == null) {
+            return false;
+        }
+
+        int count = 0;
+        Vector2 first = default, second = default;
+        foreach (var touch in screen.touches) {
+            if (!touch.press.isPressed) {
+                continue;
+            }
+            if (count == 0) first = touch.position.ReadValue();
+            else if (count == 1) second = touch.position.ReadValue();
+            count++;
+        }
+
+        bool sameGesture = count == touchCount;
+        touchCount = count;
+        if (count == 0) {
+            return false;
+        }
+
+        if (count == 1) {
+            if (!sameGesture) {
+                touchOrbit = !PointerOverUI() && !(BlockOrbit != null && BlockOrbit());     // decided ONCE, as for the mouse
+            } else if (touchOrbit) {
+                Vector2 delta = first - lastTouch;
+                yaw += delta.x * rotateSpeed;
+                pitch = Mathf.Clamp(pitch + delta.y * rotateSpeed, minPitch, maxPitch);
+            }
+            lastTouch = first;
+        } else {
+            float spread = Vector2.Distance(first, second);
+            if (sameGesture && lastSpread > 1f && spread > 1f) {
+                distance = Mathf.Clamp(distance * lastSpread / spread, minDistance, maxDistance);   // apart = closer
+            }
+            lastSpread = spread;
+        }
+        return true;
     }
 
 

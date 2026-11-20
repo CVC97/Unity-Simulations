@@ -6,6 +6,7 @@
   <title>Vorlesungsversuche – Simulationen</title>
   <meta name="description" content="Interaktive Simulationen von Versuchen aus der Physik-Vorlesung">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preload" href="assets/fonts/bebas-neue-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/noir.css">
 </head>
 <body>
@@ -23,15 +24,19 @@
     <!-- one card per simulation; each lives in its own folder (page + build) -->
     <nav class="cards" aria-label="Versuche">
       <a class="card" href="gyroscope/">
+        <span class="tag label-caps">Mechanik · Starrer Körper</span>
         <h2>Vorlesungskreisel</h2>
         <p>Ein Kreisel auf einer Spitze: hängend, ausbalanciert, kopflastig. Präzession, Nutation und die drei Kegel.</p>
-        <span class="tag">Mechanik · Starrer Körper</span>
+        <span class="open label-caps">
+          Öffnen
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
+        </span>
       </a>
     </nav>
   </main>
 
   <footer class="site-footer">
-    <span>Physik und ihre Didaktik, Universität Göttingen</span>
+    <span>Physik und ihre Didaktik · Universität Göttingen</span>
   </footer>
 </body>
 </html>

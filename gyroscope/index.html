@@ -6,13 +6,19 @@
   <title>Vorlesungskreisel – Vorlesungsversuche</title>
   <meta name="description" content="Interaktive Simulation des Vorlesungskreisels: hängend, ausbalanciert, kopflastig">
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <link rel="preload" href="../assets/fonts/bebas-neue-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../assets/noir.css">
   <script type="module" src="gyroscope.js"></script>
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="../">Vorlesungsversuche</a>
-    <a href="sim/" title="Nur die Simulation, ohne Text und Bedienfeld">Vollbild</a>
+    <nav class="header-actions">
+      <a class="nav-link" href="../">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M20 12H5"/><path d="M11 6l-6 6 6 6"/></svg>
+        Alle Versuche
+      </a>
+    </nav>
   </header>
 
   <main>
@@ -22,45 +28,65 @@
       dreht sich auf der Spitze eines Stifts. Drei Versuche mit demselben Kreisel, je nachdem, wo sein Schwerpunkt liegt.
     </p>
 
-    <!-- the Unity canvas (build in sim/, loaded by gyroscope.js) -->
-    <div class="stage" id="stage">
-      <canvas id="unity-canvas" tabindex="-1" aria-label="Simulation des Vorlesungskreisels"></canvas>
-      <div class="stage-loading" role="status" aria-live="polite">
-        <div class="bar" aria-hidden="true"><div class="fill"></div></div>
-        <span>Simulation lädt … <span class="percent">0 %</span></span>
-        <p class="error" hidden></p>
+    <!-- the simulation block: scenario tabs, stage, toolbar | side panel; fullscreen as a whole (gyroscope.js) -->
+    <section class="sim" id="sim" aria-label="Simulation">
+      <div class="sim-main">
+        <div class="tabs" id="scenarios" role="tablist" aria-label="Versuch"></div>
+        <div class="stage" id="stage">
+          <canvas id="unity-canvas" tabindex="-1" aria-label="Simulation des Vorlesungskreisels"></canvas>
+          <dl class="hud" id="hud" aria-label="Messwerte"></dl>
+          <div class="stage-tools">
+            <button type="button" class="icon-button" id="fullscreen" aria-label="Vollbild" title="Vollbild">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+            </button>
+          </div>
+          <p class="stage-notice" id="notice" role="status" hidden></p>
+          <div class="stage-loading" role="status" aria-live="polite">
+            <div class="bar" aria-hidden="true"><div class="fill"></div></div>
+            <span class="label-caps">Simulation lädt … <span class="percent">0 %</span></span>
+            <p class="error" hidden></p>
+          </div>
+        </div>
+        <div class="toolbar" id="toolbar" role="toolbar" aria-label="Ablauf"></div>
       </div>
-      <p class="stage-notice" id="notice" role="status" hidden></p>
-    </div>
+      <aside class="sim-side" id="panel" aria-label="Einstellungen"></aside>
+    </section>
 
-    <div class="chips" id="scenarios" role="group" aria-label="Versuch"></div>
-    <div class="panel" id="panel"></div>
-    <section class="scenario-text prose" id="scenario-text" aria-live="polite"></section>
+    <section class="prose columns" id="scenario-text" aria-live="polite"></section>
 
-    <section class="prose">
-      <h2>Der Apparat</h2>
-      <p>
-        Scheibe, Stab, Dreibein und Ring bilden einen starren Körper, der sich als Ganzes um den Stab dreht. Die Spitze
-        des Dreibeins sitzt auf der Spitze eines dünnen, festen Stifts. Der schwere Ring hängt unter dieser Spitze, die
-        leichte Scheibe steht weit darüber: Ohne Zusatzgewicht liegt der Schwerpunkt <em>unter</em> dem Auflagepunkt.
-        Ein Gewicht auf der Nabe über der Scheibe hebt ihn an – mit 120&nbsp;g genau in die Spitze, mit mehr darüber.
-      </p>
-      <p>
-        Die Simulation rechnet mit den Bewegungsgleichungen des symmetrischen schweren Kreisels. Massen und Maße sind
-        geschätzt (Scheibe 150&nbsp;g, Ø&nbsp;40&nbsp;cm, 75&nbsp;cm über der Spitze; Ring 2,5&nbsp;kg); die
-        Größenordnungen stimmen, die genauen Zahlen des Hörsaal-Kreisels nicht unbedingt.
-      </p>
-      <h3>Bedienung</h3>
-      <p>
-        Ziehen mit der Maus dreht die Ansicht, das Mausrad zoomt. Die gezeichnete Drehung der Scheibe wird bei hoher
-        Drehzahl gebremst, damit das Auge folgen kann – die Rechnung nicht.
-      </p>
+    <section class="prose columns section-rule">
+      <div>
+        <h2>Der Apparat</h2>
+        <p>
+          Scheibe, Stab, Dreibein und Ring bilden einen starren Körper, der sich als Ganzes um den Stab dreht. Die Spitze
+          des Dreibeins sitzt auf der Spitze eines dünnen, festen Stifts. Der schwere Ring hängt unter dieser Spitze, die
+          leichte Scheibe steht weit darüber: Ohne Zusatzgewicht liegt der Schwerpunkt <em>unter</em> dem Auflagepunkt.
+          Ein Gewicht auf der Nabe über der Scheibe hebt ihn an – mit 120&nbsp;g genau in die Spitze, mit mehr darüber.
+        </p>
+        <p>
+          Die Simulation rechnet mit den Bewegungsgleichungen des symmetrischen schweren Kreisels. Massen und Maße sind
+          geschätzt (Scheibe 150&nbsp;g, Ø&nbsp;40&nbsp;cm, 75&nbsp;cm über der Spitze; Ring 2,5&nbsp;kg); die
+          Größenordnungen stimmen, die genauen Zahlen des Hörsaal-Kreisels nicht unbedingt.
+        </p>
+        <h3>Bedienung</h3>
+        <p>
+          Ziehen mit der Maus dreht die Ansicht; nach einem Klick in die Simulation zoomt das Mausrad. Auf dem Touchscreen
+          dreht ein Finger die Ansicht, zwei Finger zoomen. Das Symbol oben rechts schaltet ins Vollbild, Esc zurück.
+        </p>
+        <p>
+          Die gezeichnete Drehung der Scheibe wird bei hoher Drehzahl gebremst, damit das Auge folgen kann – die
+          Rechnung nicht.
+        </p>
+      </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <span>Physik und ihre Didaktik, Universität Göttingen</span>
-    <a href="../">Alle Versuche</a>
+    <span>Physik und ihre Didaktik · Universität Göttingen</span>
+    <a class="nav-link" href="../">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M20 12H5"/><path d="M11 6l-6 6 6 6"/></svg>
+      Alle Versuche
+    </a>
   </footer>
 </body>
 </html>
