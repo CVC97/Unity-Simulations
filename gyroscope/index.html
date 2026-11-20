@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vorlesungskreisel – Vorlesungsversuche</title>
+  <meta name="description" content="Interaktive Simulation des Vorlesungskreisels: hängend, ausbalanciert, kopflastig">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <link rel="stylesheet" href="../assets/noir.css">
+  <script type="module" src="gyroscope.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../">Vorlesungsversuche</a>
+    <a href="sim/" title="Nur die Simulation, ohne Text und Bedienfeld">Vollbild</a>
+  </header>
+
+  <main>
+    <h1>Vorlesungskreisel</h1>
+    <p class="lead">
+      Eine dünne Scheibe auf einem langen Stab, darunter ein schweres Dreibein mit einem Ring – alles zusammen
+      dreht sich auf der Spitze eines Stifts. Drei Versuche mit demselben Kreisel, je nachdem, wo sein Schwerpunkt liegt.
+    </p>
+
+    <!-- the Unity canvas (build in sim/, loaded by gyroscope.js) -->
+    <div class="stage" id="stage">
+      <canvas id="unity-canvas" tabindex="-1" aria-label="Simulation des Vorlesungskreisels"></canvas>
+      <div class="stage-loading" role="status" aria-live="polite">
+        <div class="bar" aria-hidden="true"><div class="fill"></div></div>
+        <span>Simulation lädt … <span class="percent">0 %</span></span>
+        <p class="error" hidden></p>
+      </div>
+      <p class="stage-notice" id="notice" role="status" hidden></p>
+    </div>
+
+    <div class="chips" id="scenarios" role="group" aria-label="Versuch"></div>
+    <div class="panel" id="panel"></div>
+    <section class="scenario-text prose" id="scenario-text" aria-live="polite"></section>
+
+    <section class="prose">
+      <h2>Der Apparat</h2>
+      <p>
+        Scheibe, Stab, Dreibein und Ring bilden einen starren Körper, der sich als Ganzes um den Stab dreht. Die Spitze
+        des Dreibeins sitzt auf der Spitze eines dünnen, festen Stifts. Der schwere Ring hängt unter dieser Spitze, die
+        leichte Scheibe steht weit darüber: Ohne Zusatzgewicht liegt der Schwerpunkt <em>unter</em> dem Auflagepunkt.
+        Ein Gewicht auf der Nabe über der Scheibe hebt ihn an – mit 120&nbsp;g genau in die Spitze, mit mehr darüber.
+      </p>
+      <p>
+        Die Simulation rechnet mit den Bewegungsgleichungen des symmetrischen schweren Kreisels. Massen und Maße sind
+        geschätzt (Scheibe 150&nbsp;g, Ø&nbsp;40&nbsp;cm, 75&nbsp;cm über der Spitze; Ring 2,5&nbsp;kg); die
+        Größenordnungen stimmen, die genauen Zahlen des Hörsaal-Kreisels nicht unbedingt.
+      </p>
+      <h3>Bedienung</h3>
+      <p>
+        Ziehen mit der Maus dreht die Ansicht, das Mausrad zoomt. Die gezeichnete Drehung der Scheibe wird bei hoher
+        Drehzahl gebremst, damit das Auge folgen kann – die Rechnung nicht.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Physik und ihre Didaktik, Universität Göttingen</span>
+    <a href="../">Alle Versuche</a>
+  </footer>
+</body>
+</html>

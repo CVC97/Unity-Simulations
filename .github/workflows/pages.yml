@@ -1,0 +1,62 @@
+# Publishes the site (index.html, assets/, one folder per simulation with its page and committed web build) to
+# GitHub Pages. The Unity project in unity/ is NOT published.
+# Runs ONLY when a release tag is pushed (e.g. site-v1.0.0) or when started manually in the Actions tab –
+# ordinary pushes to master don't change the live site.
+#
+# The Unity builds are made locally (unity/: menu <Simulation> → Build web version, into e.g. gyroscope/sim/) and
+# committed; this workflow only uploads them, so no Unity licence is needed in CI.
+
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    tags:
+      - "site-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@v4
+
+      - name: Collect the site (everything except the Unity project and the repo's own files)
+        run: |
+          mkdir _site
+          cp index.html _site/
+          cp -r assets _site/
+          for dir in */; do
+            dir=${dir%/}
+            case "$dir" in unity|assets|_site) continue ;; esac
+            test -f "$dir/index.html" || continue
+            # a simulation folder must contain its build
+            test -f "$dir/sim/Build/sim.loader.js" || { echo "$dir/sim/Build missing – build it and commit before tagging."; exit 1; }
+            cp -r "$dir" _site/
+          done
+          touch _site/.nojekyll
+          find _site -maxdepth 3 | sort
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the site as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

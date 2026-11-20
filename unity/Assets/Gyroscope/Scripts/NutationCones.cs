@@ -1,0 +1,49 @@
+using UnityEngine;
+
+
+// The three cones of the force-free (balanced) gyroscope, apex at the pivot, each with its own slant length so the
+// rims stand apart (the widest is the shortest, the thin ones reach beyond it):
+//   Nutationskegel  around L⃗, through the figure axis: the path of the axle around the fixed L⃗
+//   Rastpolkegel    around L⃗, through ω⃗: fixed in space, the path of the instantaneous axis of rotation
+//   Gangpolkegel    around the figure axis, through ω⃗: fixed in the body, rolls on the Rastpolkegel; ω⃗ is the line
+//                   where the two touch
+// Without torque L⃗ is constant: the cones around L⃗ stand still, the Gangpolkegel rolls around. With torque they would
+// only be momentary shapes, so GyroscopeHelpers shows them only for the balanced top.
+// Before a push all angles are 0 (L⃗, ω⃗ and the figure axis on one line): the cones are hidden.
+public class NutationCones : MonoBehaviour {
+    [SerializeField] private GyroscopeController controller;
+    [SerializeField] private HelperCone nutationCone;
+    [SerializeField] private HelperCone spaceCone;                              // Rastpolkegel
+    [SerializeField] private HelperCone bodyCone;                               // Gangpolkegel
+    [SerializeField] private float minAngleDeg = 0.5f;                          // below: a line, not a cone
+    // m, apex to rim (set by the scene setup: the Nutationskegel's rim at the spike's tip, the others beyond it)
+    [SerializeField] private float nutationLength = 0.25f;
+    [SerializeField] private float spaceLength = 0.35f;
+    [SerializeField] private float bodyLength = 0.45f;
+
+
+    void LateUpdate() {
+        GyroscopeModel model = controller.Model;
+        if (model == null) return;
+
+        // directions only; the mapping to Unity is a rotation, so the angles stay the same
+        Vector3 l = PhysicsToUnity.Vector(model.AngularMomentum).normalized;
+        Vector3 omega = PhysicsToUnity.Vector(model.AngularVelocity).normalized;   // ω⃗·L⃗ = 2 E_kin > 0: on L⃗'s side
+        Vector3 axis = PhysicsToUnity.Vector(model.AxisDirection);
+        if (Vector3.Dot(axis, l) < 0) axis = -axis;                             // the half on L⃗'s side (the rod)
+
+        Vector3 pivot = controller.transform.position;
+        Place(nutationCone, pivot, l, Vector3.Angle(l, axis), nutationLength);
+        Place(spaceCone, pivot, l, Vector3.Angle(l, omega), spaceLength);
+        Place(bodyCone, pivot, axis, Vector3.Angle(axis, omega), bodyLength);
+    }
+
+
+    // cone around the given axis with the given half angle (deg) and slant length (m)
+    private void Place(HelperCone cone, Vector3 apex, Vector3 axis, float halfAngleDeg, float length) {
+        if (!cone.gameObject.activeInHierarchy) return;                         // switched off
+        cone.SetVisible(halfAngleDeg >= minAngleDeg);
+        float a = halfAngleDeg * Mathf.Deg2Rad;
+        cone.Set(apex, axis, length * Mathf.Cos(a), length * Mathf.Sin(a));
+    }
+}
