@@ -59,7 +59,7 @@ public static class GyroscopeSceneSetup {
     private static void SetUpMenu() => SetUpEverything();
 
 
-    // Unity -batchmode -nographics -projectPath unity -executeMethod GyroscopeSceneSetup.SetUpFromCommandLine -logFile setup.log
+    // Unity -batchmode -nographics -projectPath unity-simulations -executeMethod GyroscopeSceneSetup.SetUpFromCommandLine -logFile setup.log
     public static void SetUpFromCommandLine() {
         EditorApplication.Exit(SetUpEverything() ? 0 : 1);
     }

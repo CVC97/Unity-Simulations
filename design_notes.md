@@ -18,14 +18,14 @@ untouched); its physics and view scripts were **copied**, not shared: a fix on o
 | | |
 |---|---|
 | Site | static, GitHub Pages, published on a `site-v*` tag (`.github/workflows/pages.yml`) |
-| Unity | one project `unity/` for all simulations, Unity 6000.6.4f1, URP, Web |
+| Unity | one project `unity-simulations/` for all simulations, Unity 6000.6.4f1, URP, Web |
 | Simulations | `gyroscope/` (Vorlesungskreisel) |
 
 
 ## 2 Layout
 
 ```
-unity/Assets/Shared/        the noir look and what every simulation uses
+unity-simulations/Assets/Shared/        the noir look and what every simulation uses
   Materials/                arrows L (yellow), ω (white), D (red), marker (red), snowflake, trail, label (black halo)
   NoirVolumeProfile.asset   post-processing: bloom, tonemapping, contrast, vignette, film grain
   Textures/                 studio_reflection.hdr (small cubemap: reflections for metal)
@@ -34,13 +34,13 @@ unity/Assets/Shared/        the noir look and what every simulation uses
                             PhysicsToUnity
   Plugins/SimBridge.jslib   C# → page: window.onSimMessage(message)
   Editor/                   NoirEditor (FindInScene, labels, smooth cylinder), SimBuild (web builds into the site)
-unity/Assets/Gyroscope/     the Vorlesungskreisel: scene, apparatus, controller, helpers, bridge, physics, tests, setup
-unity/Assets/WebGLTemplates/Noir   loading screen of the full-window version (<sim>/sim/index.html)
+unity-simulations/Assets/Gyroscope/     the Vorlesungskreisel: scene, apparatus, controller, helpers, bridge, physics, tests, setup
+unity-simulations/Assets/WebGLTemplates/Noir   loading screen of the full-window version (<sim>/sim/index.html)
 assets/                     the site: noir.css, sim.js
 <name>/                     one simulation's page (index.html + <name>.js) and its build (sim/)
 ```
 
-**One Unity project for all simulations** (Carlo, 2026-11-20): the look is shared by construction, one set of
+**One Unity project for all simulations**, `unity-simulations/` (Carlo, 2026-11-20; named so for the Hub and file managers): the look is shared by construction, one set of
 packages and settings. Each simulation has its own scene and build profile and builds only its own scene.
 
 **The page holds the canvas itself** (no iframe): commands go straight to `unityInstance.SendMessage`, the state
@@ -140,12 +140,12 @@ after a push), the switches only say what *may* be shown. All switches off = the
   sends no `Content-Encoding`), scene list = the gyroscope scene only, template Noir.
 - The builds are committed (Pages can't run Unity); the workflow publishes on a `site-v*` tag only, so half-finished
   work on master never goes live, and it uploads only the site (start page, `assets/`, simulation folders), never
-  `unity/`.
+  `unity-simulations/`.
 
 
 ## 8 Adding a simulation
 
-1. `unity/Assets/<Name>/`: scene (start from a copy of the gyroscope scene for camera, lights, volume, snow, floor),
+1. `unity-simulations/Assets/<Name>/`: scene (start from a copy of the gyroscope scene for camera, lights, volume, snow, floor),
    scripts, a bridge MonoBehaviour on a `WebBridge` object posting through `SimPostToPage`, an editor setup script
    with rerunnable menu steps.
 2. Build profile *Web - <Name> - Release* (duplicate the gyroscope's, change the scene list) and a menu item in

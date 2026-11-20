@@ -6,7 +6,7 @@ using UnityEngine;
 
 // Web builds of the simulations, straight into the site (one folder per simulation, next to its page):
 //   Gyroscope → Build web version   (menu)
-//   Unity -batchmode -nographics -projectPath unity -executeMethod SimBuild.BuildGyroscopeFromCommandLine -logFile build.log
+//   Unity -batchmode -nographics -projectPath unity-simulations -executeMethod SimBuild.BuildGyroscopeFromCommandLine -logFile build.log
 // Output ../gyroscope/sim/ (the folder name gives sim.loader.js, sim.data.unityweb, …, which the page loads). The
 // profile sets gzip with decompression fallback: GitHub Pages sends no Content-Encoding. Exits with 0 on success.
 public static class SimBuild {

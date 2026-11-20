@@ -1,5 +1,5 @@
 // Vorlesungskreisel – the page around the simulation: scenarios, controls, readouts, texts.
-// The simulation (Unity, build in sim/) takes commands of GyroscopeBridge (unity/Assets/Gyroscope/Scripts) and
+// The simulation (Unity, build in sim/) takes commands of GyroscopeBridge (unity-simulations/Assets/Gyroscope/Scripts) and
 // reports its state ~10 times per second; see the contract in ../design_notes.md.
 import { loadSimulation, slider, toggle, button, group, el } from "../assets/sim.js";
 
