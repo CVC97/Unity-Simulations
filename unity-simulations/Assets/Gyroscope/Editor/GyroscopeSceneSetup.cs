@@ -43,7 +43,7 @@ public static class GyroscopeSceneSetup {
     private static readonly Color32 Yellow = new Color32(255, 235, 4, 255);
     private static readonly Color32 White = new Color32(255, 255, 255, 255);
     private static readonly Color32 LightGrey = new Color32(220, 223, 230, 255);
-    private static readonly Color32 Grey = new Color32(170, 175, 185, 255);
+    private static readonly Color32 Grey = new Color32(110, 112, 118, 255);         // Nutationskegel: clearly darker than the white Gangpolkegel
 
 
     [MenuItem("Gyroscope/1 Apply look")]

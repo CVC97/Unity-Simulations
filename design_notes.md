@@ -78,7 +78,8 @@ Physics notes:
 The original toy top's look (black stage, spotlight pool, snow lit only in the spot, emissive vectors with bloom,
 film grain), scaled ×4 to an apparatus 1.6 m tall. Colour only for the red marker and the vectors; everything else
 greys. **Precession light grey** (Carlo: no blue). Cones: Nutationskegel grey, Rastpolkegel yellow (around L⃗),
-Gangpolkegel white (contains ω⃗).
+Gangpolkegel white (contains ω⃗). The Nutationskegel is a darker mid grey (110, 112, 118; Carlo, 2026-11-23): the cones
+are additive and faint, so the earlier light grey at 0.14 looked as bright as the white Gangpolkegel at 0.1.
 
 Lessons (each was a visible fault first):
 - **Metal needs something to reflect.** Without baked lighting there is no reflection probe: steel and chrome mirror the
@@ -152,7 +153,12 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
   leaves the stage (always in fullscreen). A hint says so. Done in the page (`sim.js`, a capture listener on window
   that keeps the event from Unity), no change in Unity.
 - **Text** spans the page width in two columns (h2 across both), instead of one narrow column beside empty space.
-- Numbers in German notation (decimal comma).
+  All running text is justified (Blocksatz, Carlo) with the browser's German hyphenation (`lang="de"`). The lead
+  under the title ends at the line between simulation and panel; on narrow screens it takes the full width.
+- Numbers in German notation (decimal comma). Vectors in the page text are bold italic, without arrows (Carlo: the CSS
+  arrows didn't look like TeX).
+- Texts are short (Carlo, 2026-11-23): what to look at and one thing to try; no apparatus numbers (masses, the
+  balancing weight, rpm limits) – those are here, in section 3.
 - Open: English as the main language with a header toggle was asked for and then put on hold (2026-11-20) – the
   simulation itself stays German (D for the torque) in any case.
 
@@ -198,4 +204,11 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
 - Touch orbit (one finger) and pinch zoom (two) are in `OrbitCamera` (Shared) since 2026-11-20; they need a rebuild
   and a test on a real phone/tablet. The precession repo's copy of `OrbitCamera` doesn't have them.
 - Page language: English + German toggle on hold (section 6).
+- **The disk is too bright** (Carlo, 2026-11-23): seen from above, the top of the disk is a white blob in the bloom,
+  its picture and edge lost. Likely the white placeholder art (bars, moon) fully lit by the spot and then pushed over
+  the bloom threshold. To look at, in this order: the art's brightness (the final `DiskArt.png` may already fix it),
+  the disk material (base colour / smoothness, so it stays below the bloom threshold), then the spot's intensity on the
+  disk. A scene change: through the setup menu steps, then rebuild. Not started.
+- **Next simulation: Foucault-Pendel** (agreed 2026-11-23, not started): concept, open questions and build steps in
+  `foucault_plan.md`.
 - The precession repo's design notes still describe the lab/module side; keep any physics fix in mind for both copies.

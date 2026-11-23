@@ -46,16 +46,12 @@ const SCENARIOS = [
     show: { ...ALL_ON, nutationCone: false, spaceCone: false, bodyCone: false },
     text: `
       <h2>Der hängende Kreisel präzediert rückwärts</h2>
-      <p>Ohne Zusatzgewicht liegt der Schwerpunkt unter der Spitze. Kippt der Stab, zieht die Schwerkraft ihn zurück
-      zur Senkrechten: Das Drehmoment <b class="q-torque">${vec("D")}</b> zeigt genau andersherum als bei einem
-      Spielkreisel, dessen Schwerpunkt über der Spitze liegt.</p>
-      <p>Weil <span class="formula">${vec("D")} = d${vec("L")}/dt</span>, schiebt das Drehmoment den Drehimpuls
-      <b class="q-L">${vec("L")}</b> seitlich weiter – und mit ihm den Stab. Die Spitze des Stabs läuft auf einem
-      Kegel um die Senkrechte, aber <em>gegen</em> den Drehsinn der Scheibe.</p>
-      <p class="note"><span class="label-caps">Probieren Sie</span>Drehen Sie die Drehzahl auf 0. Ohne Drehimpuls gibt
-      es keine Präzession – der Kreisel schwingt nur noch wie ein Pendel durch die Senkrechte. Je schneller er sich
-      dreht, desto langsamer präzediert er: <span class="formula">ω<sub>P</sub> ≈ D / (L sin θ)</span>, und L wächst
-      mit der Drehzahl.</p>`,
+      <p>Ohne Zusatzgewicht liegt der Schwerpunkt unter der Spitze. Das Drehmoment <span class="q-torque">${vec("D")}</span>
+      zieht den Stab zurück zur Senkrechten – andersherum als beim Spielkreisel. Es schiebt den Drehimpuls
+      <span class="q-L">${vec("L")}</span> seitlich weiter (<span class="formula">${vec("D")} = d${vec("L")}/dt</span>):
+      Der Stab präzediert, aber <em>gegen</em> den Drehsinn der Scheibe.</p>
+      <p class="note"><span class="label-caps">Probieren Sie</span>Drehzahl auf 0: Ohne Drehimpuls keine Präzession, der
+      Kreisel pendelt nur. Je schneller er sich dreht, desto langsamer präzediert er.</p>`,
   },
   {
     id: "balanced",
@@ -66,24 +62,18 @@ const SCENARIOS = [
     helpers: FORCE_FREE,
     show: { ...ALL_ON, D: false, precessionCone: false },
     text: `
-      <h2>Ohne Drehmoment: Nutation und die drei Kegel</h2>
-      <p>Mit ${BALANCE_GRAMS}&nbsp;g auf der Nabe liegt der Schwerpunkt genau in der Spitze. Die Schwerkraft übt kein
-      Drehmoment aus, also bleibt der Drehimpuls <b class="q-L">${vec("L")}</b> nach Betrag und Richtung fest. Nach
-      einem Stoß zeigen Stab, <b>${vec("ω")}</b> und ${vec("L")} aber in verschiedene Richtungen – und der Stab beginnt
-      zu nicken: die Nutation. Drei Kegel beschreiben sie:</p>
+      <h2>Ohne Drehmoment: Nutation</h2>
+      <p>Mit dem Zusatzgewicht liegt der Schwerpunkt genau in der Spitze. Ohne Drehmoment bleibt der Drehimpuls
+      <span class="q-L">${vec("L")}</span> fest. Nach einem Stoß zeigen Stab, ${vec("ω")} und ${vec("L")} in verschiedene
+      Richtungen, und der Stab nickt: die Nutation.</p>
       <ul>
-        <li><b>Nutationskegel</b> (grau): Der Stab läuft auf einem Kegel um das feste ${vec("L")}.</li>
-        <li><b>Rastpolkegel</b> (gelb): Die momentane Drehachse ${vec("ω")} läuft um ${vec("L")}; dieser Kegel steht
-        fest im Raum.</li>
-        <li><b>Gangpolkegel</b> (weiß): ${vec("ω")} um den Stab; dieser Kegel sitzt fest im Kreisel und rollt auf dem
-        Rastpolkegel ab. Ihre Berührlinie ist in jedem Moment ${vec("ω")}.</li>
+        <li><b>Nutationskegel</b> (grau): der Stab um ${vec("L")}.</li>
+        <li><b>Rastpolkegel</b> (gelb): ${vec("ω")} um ${vec("L")}, fest im Raum.</li>
+        <li><b>Gangpolkegel</b> (weiß): ${vec("ω")} um den Stab, fest im Kreisel; er rollt außen auf dem Rastpolkegel
+        ab.</li>
       </ul>
-      <p>Der Vorlesungskreisel ist ein „langer“ Kreisel: Um eine Querachse ist er viel träger als um den Stab. Dann
-      liegt ${vec("ω")} zwischen Stab und ${vec("L")}, und der Gangpolkegel rollt <em>außen</em> auf dem
-      Rastpolkegel.</p>
-      <p class="note"><span class="label-caps">Probieren Sie</span>Stoßen Sie bei doppelter Drehzahl gleich stark an.
-      Der Kreisel nickt doppelt so schnell, und die Kegel werden etwa halb so weit: <span class="formula">ω<sub>N</sub>
-      = L / I<sub>1</sub></span> wächst mit der Drehzahl.</p>`,
+      <p class="note"><span class="label-caps">Probieren Sie</span>Doppelte Drehzahl, gleicher Stoß: Der Kreisel nickt
+      doppelt so schnell, die Kegel werden halb so weit.</p>`,
   },
   {
     id: "topHeavy",
@@ -94,16 +84,11 @@ const SCENARIOS = [
     show: { ...ALL_ON, nutationCone: false, spaceCone: false, bodyCone: false },
     text: `
       <h2>Schnell gegen langsam</h2>
-      <p>Mit 300&nbsp;g auf der Nabe liegt der Schwerpunkt über der Spitze. Jetzt verhält sich der Kreisel wie ein
-      Spielkreisel: Er präzediert <em>im</em> Drehsinn der Scheibe – solange er schnell genug ist.</p>
-      <p>Losgelassen fällt der Stab zuerst ein Stück und fängt sich dann in Nutationsbögen. Je langsamer der Kreisel,
-      desto tiefer die Bögen. Eine gleichmäßige Präzession gibt es nur oberhalb einer Grenze,
-      <span class="formula">I<sub>3</sub>²ω<sub>R</sub>² ≥ 4 m g s I<sub>1</sub> cos θ</span> (s: Abstand des
-      Schwerpunkts von der Spitze); bei 15° Neigung liegt sie hier bei etwa 330&nbsp;U/min. Darunter fängt er sich
-      nicht mehr: Er kippt, bis ein Bein des Dreibeins an den Stift schlägt.</p>
-      <p class="note"><span class="label-caps">Probieren Sie</span>250, 400, 600 und 1000&nbsp;U/min, jeweils mit
-      Neustart. Bei 250 kippt er, bei 400 schlägt er tiefe Bögen bis fast an den Stift, ab 600 nickt er nur noch
-      leicht.</p>`,
+      <p>Mit mehr Zusatzgewicht liegt der Schwerpunkt über der Spitze: Der Kreisel präzediert wie ein Spielkreisel
+      <em>im</em> Drehsinn – wenn er schnell genug ist. Losgelassen fällt der Stab erst und fängt sich in
+      Nutationsbögen, je langsamer, desto tiefer. Ist er zu langsam, fängt er sich nicht mehr und kippt.</p>
+      <p class="note"><span class="label-caps">Probieren Sie</span>Verschiedene Drehzahlen, jeweils mit Neustart: Wann
+      kippt er, wann nickt er nur noch?</p>`,
   },
   {
     id: "free",
@@ -114,11 +99,8 @@ const SCENARIOS = [
     show: { ...ALL_ON },
     text: `
       <h2>Frei experimentieren</h2>
-      <p>Alle Regler auf einmal. Das Zusatzgewicht verschiebt den Schwerpunkt: unter ${BALANCE_GRAMS}&nbsp;g hängt der
-      Kreisel, bei ${BALANCE_GRAMS}&nbsp;g ist er ausbalanciert, darüber kopflastig. Der Präzessionskegel erscheint
-      nur mit Drehmoment, die drei Nutationskegel nur ohne – und erst nach einem Stoß.</p>
-      <p>„Geführt“ startet den Kreisel so, als hätte man ihn mit der Hand genau in die gleichmäßige Präzession
-      geschoben; „losgelassen“ startet er aus der Ruhe und nickt.</p>`,
+      <p>Alle Regler auf einmal. Das Zusatzgewicht entscheidet, ob der Kreisel hängt, ausbalanciert oder kopflastig
+      ist. „Geführt“ startet ihn genau in gleichmäßiger Präzession, „losgelassen“ aus der Ruhe.</p>`,
   },
 ];
 
@@ -199,7 +181,7 @@ function renderPanel() {
     rpm: () => slider({ label: "Drehzahl", min: 0, max: 1000, step: 10, value: values.rpm,
                         format: (v) => `${num(v)} U/min`,
                         onInput: (v) => { values.rpm = v; sim.send("SetRpm", v); } }),
-    mass: () => slider({ label: "Zusatzgewicht auf der Nabe", min: 0, max: 300, step: 10, value: values.addOnMassGrams,
+    mass: () => slider({ label: "Zusatzgewicht", min: 0, max: 300, step: 10, value: values.addOnMassGrams,
                          format: (v) => `${num(v)} g · ${regime(v)}`,
                          onInput: (v) => { values.addOnMassGrams = v; sim.send("SetAddOnMassGrams", v); } }),
     theta: () => slider({ label: "Neigung θ₀", min: 5, max: 25, step: 1, value: values.theta0Deg,

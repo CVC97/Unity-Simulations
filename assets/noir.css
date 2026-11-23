@@ -41,15 +41,14 @@
 	--vec-omega:   #ffffff;
 	--vec-torque:  var(--red);
 	--cone-precession: #dcdfe6;
-	--cone-nutation:   #aaafb9;
+	--cone-nutation:   #6e7076;
 
 	--font-title: "Bebas Neue", "Oswald", "Arial Narrow", "Liberation Sans Narrow", "PT Sans Narrow", sans-serif;
 	--font-body:  "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	--font-math:  "Cambria Math", "STIX Two Math", "Latin Modern Math", serif;
 
 	--wide:       80rem;          /* page width: simulation, text columns */
-	--measure:    44rem;          /* single text column (lead) */
-	--side:       21rem;          /* control panel beside the simulation */
+	--side:     21rem;          /* control panel beside the simulation */
 	--control:    2.25rem;        /* height of every button, tab and chip */
 	--gap:        0.5rem;
 }
@@ -183,7 +182,21 @@ h1 { font-size: clamp(2.6rem, 8vw, 4.6rem); margin: 2.75rem 0 0.5rem; letter-spa
 h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); margin: 0 0 1rem; }
 h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 
-.lead { color: var(--grey); font-size: 1.05rem; max-width: var(--measure); margin: 0; }
+/* running text: justified (Blocksatz), German hyphenation from lang="de"; no break leaves fewer than 3 letters */
+.lead, .prose p, .prose li, .card p {
+	text-align: justify;
+	-webkit-hyphens: auto;
+	hyphens: auto;
+	hyphenate-limit-chars: 6 3 3;
+}
+
+/* the lead ends where the simulation ends and the panel begins: one vertical line through the page */
+.lead {
+	color: var(--grey);
+	font-size: 1.05rem;
+	max-width: calc(100% - var(--side));
+	margin: 0;
+}
 
 .prose { margin-top: 3.5rem; color: var(--text); }
 .prose p, .prose ul { margin: 0 0 1rem; }
@@ -197,7 +210,7 @@ h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 .columns > div { columns: 2 22rem; column-gap: 3.5rem; }
 .columns h2 { column-span: all; }
 .columns h3 { margin-top: 1.5rem; break-after: avoid; }
-.columns p, .columns li, .columns .note { break-inside: avoid; }
+.columns p, .columns ul, .columns .note { break-inside: avoid; }     /* a list stays in one column */
 .section-rule { border-top: 1px solid var(--line); padding-top: 2rem; }
 
 .note {
@@ -207,17 +220,7 @@ h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 }
 .note .label-caps { display: block; color: var(--red); margin-bottom: 0.2rem; }
 
-.vec { position: relative; display: inline-block; font-style: italic; }      /* vector: a small arrow above the letter */
-.vec::before {
-	content: "→";
-	position: absolute;
-	left: 50%;
-	top: -0.62em;
-	transform: translateX(-45%);
-	font-size: 0.62em;
-	font-style: normal;
-	line-height: 1;
-}
+.vec { font-weight: 700; font-style: italic; }                     /* vector: bold italic, no arrow (ISO 80000) */
 .formula { font-family: var(--font-math); font-size: 1.1rem; white-space: nowrap; color: var(--paper); }
 .q-L { color: var(--vec-L); }
 .q-omega { color: var(--vec-omega); }
@@ -226,7 +229,13 @@ h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 
 /* ---- start page: experiment cards ---- */
 
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+.cards { 
+	display: grid; 
+	grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); 
+	gap: 1.25rem; 
+	margin-top: 3rem; 
+}
+
 .card {
 	position: relative;
 	display: flex;
@@ -235,7 +244,7 @@ h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 	min-height: 15rem;
 	padding: 1.75rem;
 	border: 1px solid var(--line);
-	background: linear-gradient(180deg, var(--grey-dark), var(--ink));
+	background: var(--grey-dark);
 	transition: border-color 0.25s;
 }
 .card:hover { border-color: var(--red); }
@@ -418,9 +427,16 @@ h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 .panel-head .label-caps { display: flex; align-items: center; gap: 0.6rem; }
 .panel-head .label-caps::before { content: ""; width: 0.35rem; height: 0.35rem; background: var(--red); }
 
-.field { display: grid; grid-template-columns: 1fr auto; gap: 0.35rem 0.75rem; align-items: baseline; }
-.field label, .field .field-label { font-size: 0.85rem; color: var(--text); }
-.field output { font-size: 0.85rem; font-variant-numeric: tabular-nums; color: var(--paper); }
+/* label and value on one line, always: a long label is cut off (…) rather than wrapped */
+.field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.35rem 0.75rem; align-items: baseline; }
+.field label, .field .field-label {
+	font-size: 0.85rem;
+	color: var(--text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.field output { font-size: 0.85rem; font-variant-numeric: tabular-nums; color: var(--paper); white-space: nowrap; }
 .field output small { color: var(--grey); }
 .field > input, .field > .segmented { grid-column: 1 / -1; }
 .field > .segmented { display: grid; grid-template-columns: 1fr 1fr; }
@@ -551,6 +567,7 @@ input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--r
 	.sim { grid-template-columns: minmax(0, 1fr); }
 	.sim-side { border-left: 0; border-top: 1px solid var(--line); }
 	.sim.is-full .sim-side { display: none; }
+	.lead { max-width: none; }
 }
 @media (max-width: 40rem) {
 	.site-header { flex-wrap: wrap; }
