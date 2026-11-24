@@ -22,3 +22,5 @@
 # local notes
 *.log
 .DS_Store
+*.pdf
+foucault_plan.md
