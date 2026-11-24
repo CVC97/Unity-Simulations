@@ -55,7 +55,23 @@ public struct Vec3d {
             X = a.Y*b.Z - a.Z*b.Y,
             Y = a.Z*b.X - a.X*b.Z,
             Z = a.X*b.Y - a.Y*b.X,
-        };  
+        };
         return crossProduct;
     }
+
+    // added for the Foucault pendulum (2026-11-24); shared by all simulations since then (Assets/Shared/Physics)
+    public Vec3d(double x, double y, double z) {
+        X = x;
+        Y = y;
+        Z = z;
+    }
+
+    public static Vec3d operator -(Vec3d a) => new Vec3d(-a.X, -a.Y, -a.Z);
+    public static Vec3d operator *(double x, Vec3d a) => a * x;
+    public static Vec3d operator /(Vec3d a, double x) => new Vec3d(a.X / x, a.Y / x, a.Z / x);
+
+    public double SqrLength => X*X + Y*Y + Z*Z;
+    public double Length => Math.Sqrt(SqrLength);
+
+    public override string ToString() => $"({X:G6}, {Y:G6}, {Z:G6})";
 }

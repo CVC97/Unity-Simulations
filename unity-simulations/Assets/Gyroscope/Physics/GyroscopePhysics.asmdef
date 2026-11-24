@@ -1,7 +1,9 @@
 {
     "name": "GyroscopePhysics",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "SharedPhysics"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

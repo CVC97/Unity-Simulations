@@ -40,6 +40,7 @@
 	--vec-L:       var(--yellow);
 	--vec-omega:   #ffffff;
 	--vec-torque:  var(--red);
+	--vec-force:   var(--red);                 /* forces like torques (Foucault: Coriolis) */
 	--cone-precession: #dcdfe6;
 	--cone-nutation:   #6e7076;
 
@@ -167,6 +168,7 @@ main { width: 100%; max-width: var(--wide); margin: 0 auto 5rem; padding: 0 1rem
 .segmented button + button { border-left: 1px solid var(--line-strong); }
 .segmented button:hover { color: var(--paper); }
 .segmented button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+.segmented button:disabled, .segmented button:disabled:hover { color: var(--grey-mid); cursor: default; }
 
 
 /* ---- type ---- */
@@ -225,6 +227,7 @@ h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 .q-L { color: var(--vec-L); }
 .q-omega { color: var(--vec-omega); }
 .q-torque { color: var(--vec-torque); }
+.q-force { color: var(--vec-force); }
 
 
 /* ---- start page: experiment cards ---- */

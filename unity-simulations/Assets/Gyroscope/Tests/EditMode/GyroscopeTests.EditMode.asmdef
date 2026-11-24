@@ -2,6 +2,7 @@
     "name": "GyroscopeTests.EditMode",
     "rootNamespace": "",
     "references": [
+        "SharedPhysics",
         "GyroscopePhysics",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

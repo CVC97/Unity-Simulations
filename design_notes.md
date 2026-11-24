@@ -19,7 +19,7 @@ untouched); its physics and view scripts were **copied**, not shared: a fix on o
 |---|---|
 | Site | static, GitHub Pages, published on a `site-v*` tag (`.github/workflows/pages.yml`) |
 | Unity | one project `unity-simulations/` for all simulations, Unity 6000.6.4f1, URP, Web |
-| Simulations | `gyroscope/` (Vorlesungskreisel) |
+| Simulations | `gyroscope/` (Vorlesungskreisel), `foucault/` (Foucault-Pendel, from 2026-11-24, section 11) |
 
 
 ## 2 Layout
@@ -32,9 +32,12 @@ unity-simulations/Assets/Shared/        the noir look and what every simulation 
   Meshes/                   SmoothCylinder (96 sides)
   Scripts/                  SimulationTime, OrbitCamera, VectorArrow(3D), ArrowBase, VectorLabel, ConeMesh, HelperCone,
                             PhysicsToUnity
+  Physics/                  Vec3d in the plain assembly SharedPhysics (no engine references); both physics
+                            assemblies reference it (moved from Gyroscope/Physics on 2026-11-24, GUID kept)
   Plugins/SimBridge.jslib   C# → page: window.onSimMessage(message)
   Editor/                   NoirEditor (FindInScene, labels, smooth cylinder), SimBuild (web builds into the site)
 unity-simulations/Assets/Gyroscope/     the Vorlesungskreisel: scene, apparatus, controller, helpers, bridge, physics, tests, setup
+unity-simulations/Assets/Foucault/      the Foucault-Pendel: the same parts (section 11)
 unity-simulations/Assets/WebGLTemplates/Noir   loading screen of the full-window version (<sim>/sim/index.html)
 assets/                     the site: noir.css, sim.js, fonts/ (Bebas Neue, Inter; SIL OFL)
 <name>/                     one simulation's page (index.html + <name>.js) and its build (sim/)
@@ -99,7 +102,9 @@ exists a generated placeholder (moon behind cell bars, one red spot). It must be
 films or comics.
 
 
-## 5 Page ↔ simulation contract (Vorlesungskreisel)
+## 5 Page ↔ simulation contract
+
+### Vorlesungskreisel
 
 Page → simulation: `unityInstance.SendMessage("WebBridge", cmd, value)`, through `sim.send(cmd, value)`
 (`assets/sim.js`: objects as JSON, booleans as 1/0, queued until Unity runs).
@@ -120,6 +125,30 @@ addOnMassGrams, balanced, paused, spinLimited, fallen`.
 
 The cones are gated by physics in the simulation (precession cone only with torque; nutation cones only balanced and
 after a push), the switches only say what *may* be shown. All switches off = the bare experiment.
+
+
+### Foucault-Pendel
+
+Same mechanics (`WebBridge`, `sim.send`, `SimPostToPage`), `FoucaultBridge`:
+
+| Command | Value | Effect |
+|---|---|---|
+| `ApplyPreset` | JSON, complete state `{latitudeDeg, amplitude, frame, timeScale, paused, show}` (missing keys → defaults of `FoucaultPreset`) | one release |
+| `SetHelpers` | JSON, partial `{omega, coriolis, plane, compass, labels, trace}` | live |
+| `SetLatitude` | number, deg, north positive | the pendulum swings on (segment + 1) |
+| `SetAmplitude` | number, m horizontally, 0.8–1.6 | released anew |
+| `SetFrame` | `"earth"` / `"stars"` | live; stars is only shown at ±90° |
+| `SetTimeScale` | number, the Zeitraffer factor (1 … 2000) | live; *not* Unity's time scale |
+| `SetPaused` | 0–1 | |
+| `Restart` | — | released anew |
+
+Simulation → page: `{source: "foucault", type: "ready" | "state", …}`; state ~10 Hz real time, also paused: `run,
+segment, time (s simulated), latitudeDeg, planeRateDegPerHour (signed: < 0 = clockwise), turnedDeg (measured, signed),
+amplitude, swingPeriod, timeScale, actualTimeScale, lagging, frame (shown), starsAllowed, pinsDown, pinsTotal,
+bobVisible, paused`.
+
+The Coriolis arrow hides while the fan replaces the bob; labels and trace follow the master switch only (as on the
+Kreisel); the fan, the degree ring and the pins are not helpers.
 
 
 ## 6 The site
@@ -165,7 +194,7 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
 
 ## 7 Build and deploy
 
-- `SimBuild` builds a simulation's profile straight into its site folder (`../gyroscope/sim`); the folder name gives
+- `SimBuild` builds a simulation's profile straight into its site folder (`../gyroscope/sim`, `../foucault/sim`); the folder name gives
   the file names the page loads (`sim.loader.js`, `sim.data.unityweb`, …). Profile *Web - Gyroscope - Release*:
   derived from the precession original's Pages profile (gzip **with decompression fallback**, because GitHub Pages
   sends no `Content-Encoding`), scene list = the gyroscope scene only, template Noir.
@@ -209,6 +238,50 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
   the bloom threshold. To look at, in this order: the art's brightness (the final `DiskArt.png` may already fix it),
   the disk material (base colour / smoothness, so it stays below the bloom threshold), then the spot's intensity on the
   disk. A scene change: through the setup menu steps, then rebuild. Not started.
-- **Next simulation: Foucault-Pendel** (agreed 2026-11-23, not started): concept, open questions and build steps in
-  `foucault_plan.md`.
+- **Foucault-Pendel** (section 11): written 2026-11-24, not yet run in the editor. Carlo: open
+  `Assets/Foucault/FoucaultScene.unity`, *Foucault → Set up everything*, play (WebBridge → ⋮ → *Apply test preset*:
+  pole, star view, 1000×), run the tests, then *Foucault → Build web version* and look at the page. Everything visual
+  (light, materials, sizes, label offsets, fan and trace brightness) is a first guess to tune on screenshots.
 - The precession repo's design notes still describe the lab/module side; keep any physics fix in mind for both copies.
+
+
+## 11 The Foucault-Pendel: apparatus, physics, display (2026-11-24)
+
+Built from `foucault_plan.md` (local note) after Carlo's answers to its open questions on 2026-11-24: no real pendulum
+in Göttingen is known, so it is **estimated** (15 m, 25 kg steel bob of 26 cm, the Kreisel's grey metals, φ = 51.5° N); star-fixed view **only
+at the poles** (option a); **true physics with a Zeitraffer** up to 2000×, no exaggerated Earth rotation; **ring of
+pins** yes; **no Ellipse tab** (Airy precession stays in the tests only).
+
+| Decision | Why |
+|---|---|
+| Physics: spherical pendulum in Cartesian East-North-Up, tension as constraint force, RK4 with a fixed 0.02 s step, then projected back onto \|r\| = L (`FoucaultModel`) | Spherical coordinates are singular at the bottom, which the bob passes every swing; the full nonlinear equations keep Airy precession. |
+| Zeitraffer is the controller's own factor: each frame integrates `Time.deltaTime × factor` in fixed steps, at most 6000 per frame (`Lagging` beyond) | Unity's time scale is capped at 100 and would scale `fixedDeltaTime`. Pause still goes through `SimulationTime` (time scale 0). ≈ 13 M steps/s in .NET; 2000× needs 0.1 M. |
+| Swing plane **measured**, not assumed: from the tensor ω₀² p pᵀ + v vᵀ of the horizontal motion (`SwingEllipse`), unwrapped every frame | It gives the plane at every instant, exact for a flat swing; the HUD's "Gedreht" and the plane helper show what the pendulum really does. The HUD's rate is the formula −15.04 °/h · sin φ. |
+| **Fan** instead of the bob from 20× to 100× (`FanDisplay`): an additive sector from the suspension to the bob's arc, glowing at the arc; the bob hides at half | Above ~50× the bob swings several times per frame and only flickers. |
+| **Trace** as chords between turning points (`TraceDisplay`), a new one only after the plane has turned 1.5° and from the other end of the swing (`traceSpacingDeg`); 120 kept = half a turn, a full star, older ones fade. With the bob hidden in the fan, the live piece is the newest whole swing | The Coriolis ellipse is far below a millimetre (b/a ≈ Ω sin φ / ω₀ ~ 10⁻⁴), so chords are exact. One per half swing (Carlo's screenshots, 2026-11-24) turned only ~0.02° apart and merged into a solid white wedge; spaced chords miss the centre by ≤ 1.6 cm, about the line width. |
+| **Hall** = the Earth-fixed root (floor, platform, pins, trace, pendulum, helpers). Star view: the Hall turns at Ω sin φ beneath a fixed camera; switching back freezes it | The pendulum is its child, so in the star view its plane stands still without extra physics. A true inertial view elsewhere would tilt the hall around the Earth's axis (Carlo: poles only). |
+| **Pins**: 48 on a ring 6 cm inside the stylus' reach, offset half a spacing from the starting plane; a pin falls when the stylus' path in one step comes within 1.5 cm (`PinRing`); the fall is drawn in real time | None falls on the first swing; in Göttingen the first one after ~15 min, all 48 after half a turn (~15 h); none at the equator. |
+| Ω (white, as ω on the Kreisel) on the pendulum's axis 2 m up, fixed length, with its parts Ω sin φ and Ω cos φ (light grey, no glow); Coriolis force (red, as D) at the bob, 150 m/N. Labels without the black halo (`FoucaultLabel.mat`) | Ω is the same everywhere; the vertical part is the teaching point. The force is a few mN. Labels have a fixed world size: beside the platform the orbiting camera came close and they grew huge. The halo is invisible on the Kreisel's black stage but showed as a dark border over the lit platform. |
+
+Physics notes (tests in `Assets/Foucault/Tests/EditMode`, also run with `dotnet test`, see below):
+- The plane turns at 0.9976 · Ω sin φ for 1.2 m amplitude: the 0.24 % is the expected finite-amplitude (Airy) part of
+  the Coriolis ellipse, (3/8)(a/L)². Zero at the equator, opposite sense in the south.
+- Airy: L = 10 m, a = 1 m, b = 1 cm gives 7.67 °/h (formula 7.66 °/h) – the plan's estimate holds.
+- Without Ω the period matches the exact pendulum 4K(k)/ω₀ to 10⁻⁶; the Jacobi constant drifts < 10⁻⁶ of the swing
+  energy in an hour.
+- Pins: the stylus reaches every pin below its head for amplitudes 0.8–1.6 m (pins 11 cm; the stylus tip is 4.5 cm
+  above the platform at rest and rises by r²/2L). Larger amplitudes would need taller pins.
+
+Running the physics tests outside Unity: a scratch project with `Microsoft.NET.Test.Sdk`, `NUnit` 3.14,
+`NUnit3TestAdapter`, `TargetFramework net10.0`, `EnableDefaultCompileItems false` and
+`<Compile Include="…/Assets/Shared/Physics/*.cs; …/Assets/Foucault/Physics/*.cs; …/Assets/Foucault/Tests/EditMode/*.cs" />`
+(likewise for Gyroscope), then `dotnet test`.
+
+Scene: `FoucaultScene.unity` started as a file copy of the Kreisel's scene (own GUID), and the build profile
+*Web - Foucault - Release* as a text copy of the Kreisel's (scene list, product name "Foucault-Pendel", new
+productGUID). Everything else comes from the menu steps (*Foucault → 1 Build hall* removes the Kreisel's objects).
+
+The page (`foucault/`): tabs Göttingen, Pol, Äquator, Südhalbkugel (presets of the latitude slider); panel *Versuch*
+(Breitengrad, Auslenkung, Bezugssystem [Erde | Sterne], Sterne disabled away from the poles) and *Anzeige* (chips Ω,
+F_C, Schwingungsebene, Himmelsrichtungen); toolbar pause, "Neu loslassen", Zeitraffer slider in 1-2-5 steps; HUD
+Breitengrad, Drehung (°/h with sense), Volle Drehung, Zeit, Gedreht, Stifte. Cross-linked with the Kreisel.

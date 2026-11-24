@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foucault-Pendel – Vorlesungsversuche</title>
+  <meta name="description" content="Interaktive Simulation des Foucault-Pendels: Drehung der Schwingungsebene in Göttingen, am Pol, am Äquator und auf der Südhalbkugel">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <link rel="preload" href="../assets/fonts/bebas-neue-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/noir.css">
+  <script type="module" src="foucault.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../">Vorlesungsversuche</a>
+    <nav class="header-actions">
+      <a class="nav-link" href="../">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M20 12H5"/><path d="M11 6l-6 6 6 6"/></svg>
+        Alle Versuche
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Foucault-Pendel</h1>
+    <p class="lead">
+      Ein schweres Pendel an einem langen Draht, über einem Kranz kleiner Stifte. Es schwingt stundenlang hin und
+      her – und seine Schwingungsebene dreht sich dabei langsam: Die Erde dreht sich unter ihm.
+    </p>
+
+    <!-- the simulation block: scenario tabs, stage, toolbar | side panel; fullscreen as a whole (foucault.js) -->
+    <section class="sim" id="sim" aria-label="Simulation">
+      <div class="sim-main">
+        <div class="tabs" id="scenarios" role="tablist" aria-label="Ort"></div>
+        <div class="stage" id="stage">
+          <canvas id="unity-canvas" tabindex="-1" aria-label="Simulation des Foucault-Pendels"></canvas>
+          <dl class="hud" id="hud" aria-label="Messwerte"></dl>
+          <div class="stage-tools">
+            <button type="button" class="icon-button" id="fullscreen" aria-label="Vollbild" title="Vollbild">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+            </button>
+          </div>
+          <p class="stage-notice" id="notice" role="status" hidden></p>
+          <div class="stage-loading" role="status" aria-live="polite">
+            <div class="bar" aria-hidden="true"><div class="fill"></div></div>
+            <span class="label-caps">Simulation lädt … <span class="percent">0 %</span></span>
+            <p class="error" hidden></p>
+          </div>
+        </div>
+        <div class="toolbar" id="toolbar" role="toolbar" aria-label="Ablauf"></div>
+      </div>
+      <aside class="sim-side" id="panel" aria-label="Einstellungen"></aside>
+    </section>
+
+    <section class="prose columns" id="scenario-text" aria-live="polite"></section>
+
+    <section class="prose columns section-rule">
+      <div>
+        <h2>Das Pendel</h2>
+        <p>
+          Eine Stahlkugel hängt an einem langen Draht hoch unter der Decke. Unter ihr liegt eine Scheibe mit
+          Gradeinteilung, darauf ein Kranz kleiner Stifte: Wenn sich die Schwingungsebene dreht, stößt der Dorn unter
+          der Kugel einen Stift nach dem anderen um. Die Simulation rechnet mit den vollständigen Bewegungsgleichungen
+          des Kugelpendels im mitdrehenden Bezugssystem der Erde, ohne Reibung; Länge und Masse sind geschätzt.
+        </p>
+        <h3>Zeitraffer</h3>
+        <p>
+          In Echtzeit dreht sich die Ebene so langsam wie im Hörsaal: In einer Vorlesung sind es nur wenige Grad. Im
+          Zeitraffer schwingt das Pendel mehrmals pro Bild; dann zeigt die Simulation statt der Kugel die Fläche, die
+          sie überstreicht, und die Spur auf dem Boden zeigt, wohin die Ebene wandert.
+        </p>
+        <h3>Bedienung</h3>
+        <p>
+          Ziehen dreht die Ansicht, nach einem Klick in die Simulation zoomt das Mausrad; auf dem Touchscreen ein bzw.
+          zwei Finger. Von oben liest sich die Spur am besten. Esc beendet das Vollbild.
+        </p>
+        <h3>Weitere Versuche</h3>
+        <p>
+          Drehbewegung von der anderen Seite: der <a href="../gyroscope/">Vorlesungskreisel</a> mit Präzession und
+          Nutation.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Physik und ihre Didaktik · Universität Göttingen</span>
+    <a class="nav-link" href="../">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M20 12H5"/><path d="M11 6l-6 6 6 6"/></svg>
+      Alle Versuche
+    </a>
+  </footer>
+</body>
+</html>

@@ -10,7 +10,8 @@ Why it is built this way, conventions, pitfalls and open items: [design_notes.md
 index.html            start page: one card per simulation
 assets/               noir.css (the site's look), sim.js (load a build, send commands, controls), fonts/, favicon
 gyroscope/            Vorlesungskreisel: index.html + gyroscope.js (page), sim/ (web build, committed)
-unity-simulations/    the Unity project (Unity 6000.6.4f1, URP): Assets/Shared (noir), Assets/Gyroscope, …
+foucault/             Foucault-Pendel: index.html + foucault.js (page), sim/ (web build, committed)
+unity-simulations/    the Unity project (Unity 6000.6.4f1, URP): Assets/Shared (noir), Assets/Gyroscope, Assets/Foucault
 .github/workflows/    pages.yml: publishes the site on a site-v* tag
 ```
 
@@ -36,6 +37,7 @@ The page loads the committed build from `gyroscope/sim/`; after a new build, rel
 
 ```bash
 # Unity: menu Gyroscope → Build web version   (→ gyroscope/sim/, raise the version in the build profile first)
+#        menu Foucault → Build web version    (→ foucault/sim/)
 #   or, with the editor closed:
 #   ~/Unity/Hub/Editor/6000.6.4f1/Editor/Unity -batchmode -nographics -projectPath unity-simulations \
 #       -executeMethod SimBuild.BuildGyroscopeFromCommandLine -logFile build.log
@@ -49,7 +51,7 @@ Repository settings → Pages → Source: *GitHub Actions* (once).
 
 ## Rules
 
-- Scene changes go through the menu *Gyroscope → …* (`unity-simulations/Assets/Gyroscope/Editor/GyroscopeSceneSetup.cs`),
+- Scene changes go through the menus *Gyroscope → …* and *Foucault → …* (`Assets/<Name>/Editor/<Name>SceneSetup.cs`),
   not by hand; the steps are rerunnable and overwrite manual tweaks to what they touch.
 - Shared things (look, view scripts, editor helpers, the bridge plugin) live in `unity-simulations/Assets/Shared/`; a new
   simulation gets its own `Assets/<Name>/` and its own site folder `<name>/` (see design_notes.md, section 8).
