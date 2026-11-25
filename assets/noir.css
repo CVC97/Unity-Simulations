@@ -185,7 +185,7 @@ h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); margin: 0 0 1rem; }
 h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 
 /* running text: justified (Blocksatz), German hyphenation from lang="de"; no break leaves fewer than 3 letters */
-.lead, .prose p, .prose li, .card p {
+.lead, .prose p, .prose li, .experiment p {
 	text-align: justify;
 	-webkit-hyphens: auto;
 	hyphens: auto;
@@ -230,39 +230,97 @@ h3 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
 .q-force { color: var(--vec-force); }
 
 
-/* ---- start page: experiment cards ---- */
+/* ---- start page: the experiments as a numbered list, one thin row each (Carlo, 2026-11-25: cards side by side
+   didn't scale). Number | greyscale thumbnail | tag + title | description | arrow; on hover a red bar grows in on
+   the left, as under the navigation links. ---- */
 
-.cards { 
-	display: grid; 
-	grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); 
-	gap: 1.25rem; 
-	margin-top: 3rem; 
-}
-
-.card {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	gap: 0.6rem;
-	min-height: 15rem;
-	padding: 1.75rem;
+.experiments {
+	list-style: none;
+	margin: 3rem 0 0;
+	padding: 0;
 	border: 1px solid var(--line);
 	background: var(--grey-dark);
-	transition: border-color 0.25s;
 }
-.card:hover { border-color: var(--red); }
-.card .tag { color: var(--red); font-size: 0.68rem; }
-.card h2 { margin: 0; font-size: 2rem; }
-.card p { margin: 0; color: var(--grey); }
-.card .open {
-	margin-top: auto;
-	display: inline-flex;
+.experiments li + li { border-top: 1px solid var(--line); }
+
+.experiment {
+	position: relative;
+	display: grid;
+	grid-template-columns: 3.25rem 7.5rem minmax(14rem, 20rem) minmax(0, 1fr) 1.25rem;
+	grid-template-areas: "num thumb head text go";
 	align-items: center;
-	gap: 0.5rem;
-	color: var(--paper);
+	column-gap: 1.75rem;
+	padding: 0.85rem 1.5rem 0.85rem 1.25rem;
+	transition: background 0.25s;
 }
-.card .open svg { width: 1rem; height: 1rem; transition: transform 0.25s; }
-.card:hover .open svg { transform: translateX(4px); }
+.experiment::before {
+	content: "";
+	position: absolute;
+	left: -1px; top: -1px; bottom: -1px;
+	width: 2px;
+	background: var(--red);
+	transform: scaleY(0);
+	transform-origin: top;
+	transition: transform 0.25s ease;
+}
+.experiment:hover { background: #1a1a1a; }
+.experiment:hover::before { transform: scaleY(1); }
+
+.experiment .num {
+	grid-area: num;
+	font-family: var(--font-title);
+	font-size: 2.4rem;
+	line-height: 1;
+	letter-spacing: 0.06em;
+	color: var(--grey-mid);
+	transition: color 0.25s;
+}
+.experiment:hover .num { color: var(--red); }
+
+.experiment .thumb {
+	grid-area: thumb;
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 4 / 3;
+	border: 1px solid var(--line);
+	filter: brightness(0.85);
+	transition: filter 0.25s;
+}
+.experiment:hover .thumb { filter: none; }
+
+.experiment .head { grid-area: head; display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.experiment .tag { color: var(--red); font-size: 0.68rem; }
+.experiment h2 { margin: 0; font-size: 2rem; }
+.experiment p { grid-area: text; margin: 0; color: var(--grey); }
+
+.experiment .go { grid-area: go; width: 1.1rem; height: 1.1rem; color: var(--paper); transition: transform 0.25s; }
+.experiment:hover .go { transform: translateX(4px); }
+
+/* medium: the description goes under the title */
+@media (max-width: 63.99rem) {
+	.experiment {
+		grid-template-columns: 2.75rem 7rem minmax(0, 1fr) 1.25rem;
+		grid-template-areas: "num thumb head go" "num thumb text go";
+		row-gap: 0.45rem;
+		align-items: start;
+	}
+	.experiment .num, .experiment .thumb, .experiment .go { align-self: center; }
+	.experiment .head { align-self: end; }
+}
+/* phones: thumbnail beside the title, the number in front of the tag is dropped */
+@media (max-width: 40rem) {
+	.experiment {
+		grid-template-columns: 5.5rem minmax(0, 1fr);
+		grid-template-areas: "thumb head" "text text";
+		column-gap: 1rem;
+		row-gap: 0.75rem;
+		padding: 1rem;
+	}
+	.experiment .num, .experiment .go { display: none; }
+	.experiment .head { align-self: center; }
+	.experiment h2 { font-size: 1.7rem; }
+}
 
 
 /* ---- simulation: tabs, stage, toolbar | side panel ---- */
@@ -512,8 +570,10 @@ input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--r
 .switch[aria-checked="true"] .track { border-color: var(--red); background: rgba(224, 25, 47, 0.25); }
 .switch[aria-checked="true"] .track::after { transform: translateX(1rem); background: var(--paper); }
 
-/* display toggles: equal chips with the quantity's colour */
-.chip-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
+/* display toggles: equal chips with the quantity's colour. Named chips as many per row as fit at the width of the
+   longest name ("Himmelsrichtungen"): one per row in the side panel, several when the panel is below the stage
+   (Carlo, 2026-11-25: two per row cut the names off). Vector symbols, short, three per row. */
+.chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: var(--gap); }
 .chip-grid.vectors { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .chip {
 	height: var(--control);

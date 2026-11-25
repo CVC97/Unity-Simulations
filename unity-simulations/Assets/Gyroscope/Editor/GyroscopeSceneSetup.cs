@@ -136,18 +136,13 @@ public static class GyroscopeSceneSetup {
         float h = p.DiskHeight;
 
         // apparatus: black-and-white metal, lacquer, rubber; the disk's picture; colour only for the red marker
-        var materials = new Dictionary<string, Material> {
-            // metals partly diffuse, so they show their shape in the spot and not only in the (dim) reflections
-            ["LectureSteel"] = Lit("LectureSteel", new Color32(215, 217, 222, 255), 0.8f, 0.72f),
-            // glossy again since the rim light no longer reaches upward faces (see below); the white balls of the
-            // first versions were the rim light mirrored in horizontal tops, not the gloss itself
-            ["LectureChrome"] = Lit("LectureChrome", new Color32(235, 236, 240, 255), 0.95f, 0.85f),
-            ["LectureDarkSteel"] = Lit("LectureDarkSteel", new Color32(125, 128, 135, 255), 0.75f, 0.62f),
-            ["LectureCastIron"] = Lit("LectureCastIron", new Color32(105, 107, 113, 255), 0.55f, 0.45f),
-            ["LectureLacquer"] = Lit("LectureLacquer", new Color32(34, 34, 38, 255), 0f, 0.75f),        // glossy black lacquer
-            ["LectureRubber"] = Lit("LectureRubber", new Color32(50, 50, 52, 255), 0f, 0.25f),
-            ["LectureDiskEdge"] = Lit("LectureDiskEdge", new Color32(190, 192, 198, 255), 0.8f, 0.65f),
-        };
+        // the shared metals (Assets/Shared/Materials, every simulation uses them) and the Kreisel's own parts
+        Dictionary<string, Material> materials = NoirEditor.LectureMaterials();
+        materials["LectureLacquer"] = Lit("LectureLacquer", new Color32(34, 34, 38, 255), 0f, 0.75f);      // glossy black lacquer
+        materials["LectureRubber"] = Lit("LectureRubber", new Color32(50, 50, 52, 255), 0f, 0.25f);
+        materials["LectureDiskEdge"] = Lit("LectureDiskEdge", new Color32(190, 192, 198, 255), 0.8f, 0.65f);
+        Material floorMaterial = materials["LectureFloor"];
+        materials.Remove("LectureFloor");                                      // the floor isn't a part of the apparatus
         Material art = Lit("LectureDiskArt", Color.white, 0.15f, 0.55f);
         art.SetTexture("_BaseMap", DiskArt());
         EditorUtility.SetDirty(art);
@@ -247,9 +242,9 @@ public static class GyroscopeSceneSetup {
         // flake size and noise scale together; the fall time and the number of flakes stay the original's)
         Transform floor = FindInScene(scene, "Floor");
         floor.localScale = new Vector3(2f * SceneScale, 0.001f, 2f * SceneScale);
-        // own floor material, rougher than the original's (0.3): seen at a grazing angle against the spot, the Fresnel
-        // highlight of the original floor bloomed into a white ball around the pedestal's foot
-        floor.GetComponent<MeshRenderer>().sharedMaterial = Lit("LectureFloor", new Color(0.2f, 0.2f, 0.2f), 0f, 0.08f);
+        // shared floor material, rougher than the original's (0.3): seen at a grazing angle against the spot, the
+        // Fresnel highlight of the original floor bloomed into a white ball around the pedestal's foot
+        floor.GetComponent<MeshRenderer>().sharedMaterial = floorMaterial;
         float snowScale = (pivot.y + h + 1.4f) / 0.8f;                         // the original snows from 0.8 m
         foreach (string name in new[] { "Snow", "Snow (fast)" }) {
             Transform snow = FindInScene(scene, name);
@@ -454,9 +449,11 @@ public static class GyroscopeSceneSetup {
         return mat;
     }
 
-    // while building, before step 3 sets the real values: the asset by that name, created plain if missing
+    // while building, before step 3 sets the real values: the asset by that name (shared metals first), created plain
+    // if missing
     private static Material LitPlaceholder(string name) {
-        var mat = AssetDatabase.LoadAssetAtPath<Material>($"{MaterialFolder}/{name}.mat");
+        var mat = AssetDatabase.LoadAssetAtPath<Material>($"{NoirEditor.SharedMaterialFolder}/{name}.mat");
+        if (mat == null) mat = AssetDatabase.LoadAssetAtPath<Material>($"{MaterialFolder}/{name}.mat");
         return mat != null ? mat : Lit(name, Color.grey, 0.5f, 0.5f);
     }
 

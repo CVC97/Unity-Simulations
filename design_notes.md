@@ -26,20 +26,24 @@ untouched); its physics and view scripts were **copied**, not shared: a fix on o
 
 ```
 unity-simulations/Assets/Shared/        the noir look and what every simulation uses
-  Materials/                arrows L (yellow), ω (white), D (red), marker (red), snowflake, trail, label (black halo)
+  Materials/                the apparatus materials every simulation uses (LectureSteel, Chrome, DarkSteel, CastIron,
+                            Floor, Black; values in NoirEditor.LectureMaterials, since 2026-11-25); arrows L (yellow),
+                            ω (white), D (red), marker (red), snowflake, trail, label (black halo)
   NoirVolumeProfile.asset   post-processing: bloom, tonemapping, contrast, vignette, film grain
   Textures/                 studio_reflection.hdr (small cubemap: reflections for metal)
   Meshes/                   SmoothCylinder (96 sides)
   Scripts/                  SimulationTime, OrbitCamera, VectorArrow(3D), ArrowBase, VectorLabel, ConeMesh, HelperCone,
                             PhysicsToUnity
+  Shaders/                  LightShaft (a visible beam: soft at its silhouette, additive)
   Physics/                  Vec3d in the plain assembly SharedPhysics (no engine references); both physics
                             assemblies reference it (moved from Gyroscope/Physics on 2026-11-24, GUID kept)
   Plugins/SimBridge.jslib   C# → page: window.onSimMessage(message)
-  Editor/                   NoirEditor (FindInScene, labels, smooth cylinder), SimBuild (web builds into the site)
+  Editor/                   NoirEditor (shared materials, FindInScene, labels, smooth cylinder), SimBuild (web builds
+                            into the site)
 unity-simulations/Assets/Gyroscope/     the Vorlesungskreisel: scene, apparatus, controller, helpers, bridge, physics, tests, setup
 unity-simulations/Assets/Foucault/      the Foucault-Pendel: the same parts (section 11)
 unity-simulations/Assets/WebGLTemplates/Noir   loading screen of the full-window version (<sim>/sim/index.html)
-assets/                     the site: noir.css, sim.js, fonts/ (Bebas Neue, Inter; SIL OFL)
+assets/                     the site: noir.css, sim.js, fonts/ (Bebas Neue, Inter; SIL OFL), thumbs/ (start page)
 <name>/                     one simulation's page (index.html + <name>.js) and its build (sim/)
 ```
 
@@ -96,6 +100,15 @@ Lessons (each was a visible fault first):
 - **Light cones**: additive URP Unlit with an alpha ramp along the cone (HelperCone's UV v: apex 0 → rim 1), faint
   (surface 0.1–0.14); rim lines below the bloom threshold. Brighter ones dominated the scene.
 - The skybox is gone (the camera clears to black; it cost 2 MB).
+- **One set of materials, a light per apparatus** (Carlo, 2026-11-25). The Foucault-Pendel's own copies drifted apart
+  over four rounds of "too bright" and still didn't reach the Kreisel's look: the cause was the light, not the
+  surfaces. So the metals and the floor are shared assets (`Assets/Shared/Materials`, moved from the Kreisel's folder
+  with their GUIDs), and each simulation gets the lighting its shape needs: the Kreisel, a tall silhouette, a soft spot
+  from the side; the pendulum, which lies flat, a hard shaft from above (section 11). A scene keeps its own material
+  only for parts the others don't have (the Kreisel's lacquer, rubber, disk).
+- Spot shadows need the URP shadow distance (`PC_RPAsset`, the Web quality level): 3 m, set for the Kreisel's camera
+  at 2.9 m, cut off every shadow in the Foucault hall (camera 7.5 m). 20 m since 2026-11-25; on the Kreisel this only
+  keeps the shadows when zoomed out. The Mobile asset has no spot shadows at all.
 
 The disk shows a picture (`Assets/Gyroscope/Textures/DiskArt.png`, square, the disk is the inscribed circle); until it
 exists a generated placeholder (moon behind cell bars, one red spot). It must be original art: no characters from
@@ -169,7 +182,7 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
 - **Toolbar**: pause/play and restart as icon buttons, Stoß as the one red primary button, **Tempo as a slider**
   (0.05–1 × real time; Carlo: not a Zeitlupe button).
 - **Side panel**: *Versuch* (only this scenario's sliders; start mode as a segmented control) and *Anzeige* (display
-  chips in the simulation's colours, vectors by symbol; a master switch greys them out but keeps their state). Each
+  chips in the simulation's colours, vectors by symbol (three per row), named ones as many per row as fit at the longest name's width, i.e. one per row in the side panel (2026-11-25: two per row cut off "Himmelsrichtungen"); a master switch greys them out but keeps their state). Each
   scenario lists only the chips that can show something there (no nutation cones while there is torque, no D⃗ and
   precession cone while balanced); the simulation gates the cones by physics anyway.
   Labels and trail have no chips (Carlo): they follow the master switch only. Each label already hides with its vector
@@ -188,6 +201,15 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
   arrows didn't look like TeX).
 - Texts are short (Carlo, 2026-11-23): what to look at and one thing to try; no apparatus numbers (masses, the
   balancing weight, rpm limits) – those are here, in section 3.
+- **Start page** (Carlo, 2026-11-25): the experiments as one bordered, numbered list, a thin row each (number,
+  thumbnail, tag + title, description, arrow), not cards side by side: more experiments will follow. Numbered in the
+  order of the lecture (Vorlesungsplan Experimentalphysik 1: Bewegte Bezugssysteme before Starre Körper, so Foucault
+  01, Kreisel 02), not by topic; topic subheadings once there are more than ~6–8. Hover as on the navigation: a red
+  bar grows in on the left, the number turns red.
+- **Thumbnails** `assets/thumbs/<name>.svg`, 4:3: greyscale line drawings of the apparatus in its spot pool (written
+  by hand/script, no build step). They may be replaced by a greyscale still from the simulation later; keep 4:3.
+- **No cross-links between simulation pages** (Carlo, 2026-11-25): the forced "Weitere Versuche" links don't scale;
+  the way to another experiment is the overview (header and footer).
 - Open: English as the main language with a header toggle was asked for and then put on hold (2026-11-20) – the
   simulation itself stays German (D for the torque) in any case.
 
@@ -207,10 +229,12 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
 
 1. `unity-simulations/Assets/<Name>/`: scene (start from a copy of the gyroscope scene for camera, lights, volume, snow, floor),
    scripts, a bridge MonoBehaviour on a `WebBridge` object posting through `SimPostToPage`, an editor setup script
-   with rerunnable menu steps.
+   with rerunnable menu steps. Materials from `NoirEditor.LectureMaterials()`; the light designed for the apparatus'
+   shape (section 4).
 2. Build profile *Web - <Name> - Release* (duplicate the gyroscope's, change the scene list) and a menu item in
    `SimBuild` with output `../<name>/sim`.
-3. Site folder `<name>/` with `index.html` + `<name>.js` (use `assets/sim.js`), a card in `index.html`.
+3. Site folder `<name>/` with `index.html` + `<name>.js` (use `assets/sim.js`), a row in the start page's list at
+   its place in the lecture (renumber the rows after it) and a thumbnail `assets/thumbs/<name>.svg` (section 6).
 4. Keep the physics in a plain C# assembly without engine references and test it with `dotnet` (precession repo,
    design notes §6).
 
@@ -242,6 +266,11 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
   `Assets/Foucault/FoucaultScene.unity`, *Foucault → Set up everything*, play (WebBridge → ⋮ → *Apply test preset*:
   pole, star view, 1000×), run the tests, then *Foucault → Build web version* and look at the page. Everything visual
   (light, materials, sizes, label offsets, fan and trace brightness) is a first guess to tune on screenshots.
+- **Foucault look, fifth round** (Carlo, 2026-11-25: the fourth was better but low in contrast, uniformly dark grey,
+  and the snow filled close views like a starfield; the Kreisel, "Sin City", is the reference). The light rethought
+  (section 11, *Light*) and the materials made the Kreisel's (section 4). Needs *Foucault → Set up everything*, a
+  rebuild and screenshots; also a look at the Kreisel (*Gyroscope → Set up everything* is not needed: its scene
+  refers to the moved materials by GUID). To tune: the shaft's intensity (`ShaftMaterial(0.025f)`), the spot's (380), the snow's rates (100 + 50 /s), glow (0.12) and `flakeScale` (1.6). **Done** (Carlo, 2026-11-25: approved, "as the thumbnail"). **Dropped: a light that follows the swing plane** (a band of light along the plane, turning with it; following the bob was ruled out first: it strobes from 20× on and lights what moves, not the reference that turns). Why: it shows the plane a second time (trace, plane helper); it is a helper that can't be switched off, against "all switches off = the bare experiment" (section 5), and gating it would change the light when helpers are toggled; and it breaks the composition of concentric circles under one vertical beam. Worth reconsidering only for a lecture mode where helpers are part of the show.
 - The precession repo's design notes still describe the lab/module side; keep any physics fix in mind for both copies.
 
 
@@ -261,7 +290,8 @@ pins** yes; **no Ellipse tab** (Airy precession stays in the tests only).
 | **Trace** as chords between turning points (`TraceDisplay`), a new one only after the plane has turned 1.5° and from the other end of the swing (`traceSpacingDeg`); 120 kept = half a turn, a full star, older ones fade. With the bob hidden in the fan, the live piece is the newest whole swing | The Coriolis ellipse is far below a millimetre (b/a ≈ Ω sin φ / ω₀ ~ 10⁻⁴), so chords are exact. One per half swing (Carlo's screenshots, 2026-11-24) turned only ~0.02° apart and merged into a solid white wedge; spaced chords miss the centre by ≤ 1.6 cm, about the line width. |
 | **Hall** = the Earth-fixed root (floor, platform, pins, trace, pendulum, helpers). Star view: the Hall turns at Ω sin φ beneath a fixed camera; switching back freezes it | The pendulum is its child, so in the star view its plane stands still without extra physics. A true inertial view elsewhere would tilt the hall around the Earth's axis (Carlo: poles only). |
 | **Pins**: 48 on a ring 6 cm inside the stylus' reach, offset half a spacing from the starting plane; a pin falls when the stylus' path in one step comes within 1.5 cm (`PinRing`); the fall is drawn in real time | None falls on the first swing; in Göttingen the first one after ~15 min, all 48 after half a turn (~15 h); none at the equator. |
-| Ω (white, as ω on the Kreisel) on the pendulum's axis 2 m up, fixed length, with its parts Ω sin φ and Ω cos φ (light grey, no glow); Coriolis force (red, as D) at the bob, 150 m/N. Labels without the black halo (`FoucaultLabel.mat`) | Ω is the same everywhere; the vertical part is the teaching point. The force is a few mN. Labels have a fixed world size: beside the platform the orbiting camera came close and they grew huge. The halo is invisible on the Kreisel's black stage but showed as a dark border over the lit platform. |
+| **Light: an oculus** straight above the axis, 13 m up: a hard spot (16.6°, inner 14.5°) whose pool ends at 1.9 m, just beyond the swing at the slider's end; a subtle additive cone makes the shaft visible (`LightShaft` mesh, shader `Noir/LightShaft` in Shared: brightness ∝ \|n·v\| per face, i.e. the path length through the beam, so it fades at its silhouette; and upwards as v⁵). As a URP Unlit cone it read as a solid, hard-edged column. Snow through the hall (radius 4.5 m, 6 m high), flakes with a faint glow of their own (`FoucaultSnowflake`, emission 0.12) so they show dimly in the dark and light up in the shaft; uniform transform scale (a non-uniform one stretched the flakes), flakes 1.6 × the Kreisel's startSize (at its world size they were invisible at 7.5 m, at 3.3 × too big). Spot 380 (half the Kreisel's illuminance: darker, like the start page's thumbnail), ambient 0.015 (Kreisel 0.09). Platform `LectureBlack` (shared, 12/12/12, matte) so only what lies on it catches the light, as in the thumbnail (with the floor's grey the pool read as a grey disk); floor unlit black (`FoucaultVoid`): it is never in the light, and lit it mirrored the studio cubemap at grazing angles as a grey plane with a horizon | The Kreisel's soft side spot, even dimmed and narrowed, left the flat platform a large mid-grey area. Now the pool is a lit circle in black, the degree ring and letters glow outside it, the bob has a white cap and its shadow lies on the swing plane. On the axis, it is the same in the star view. |
+| Ω (white, as ω on the Kreisel) on the pendulum's axis 2 m up, fixed length, with its parts Ω sin φ and Ω cos φ (light grey, no glow); Coriolis force (red, as D) at the bob, 150 m/N. Labels without the black halo (`FoucaultLabel.mat`) | Ω is the same everywhere; the vertical part is the teaching point. The force is a few mN. Labels have a fixed world size: beside the platform the orbiting camera came close and they grew huge. Closer than 6 m they shrink (`VectorLabel.nearDistance`, 2026-11-25): zoomed in at the bob, F_C still filled the view. The parts of Ω are labelled beside their middles, on the side away from Ω (`along`, `awayFrom`): at their tips, next to Ω's, the three overlapped in some views. F_C 0.3 m higher (`lift`): seen end-on its label sat on the bob. The halo is invisible on the Kreisel's black stage but showed as a dark border over the lit platform. |
 
 Physics notes (tests in `Assets/Foucault/Tests/EditMode`, also run with `dotnet test`, see below):
 - The plane turns at 0.9976 · Ω sin φ for 1.2 m amplitude: the 0.24 % is the expected finite-amplitude (Airy) part of
@@ -284,4 +314,4 @@ productGUID). Everything else comes from the menu steps (*Foucault → 1 Build h
 The page (`foucault/`): tabs Göttingen, Pol, Äquator, Südhalbkugel (presets of the latitude slider); panel *Versuch*
 (Breitengrad, Auslenkung, Bezugssystem [Erde | Sterne], Sterne disabled away from the poles) and *Anzeige* (chips Ω,
 F_C, Schwingungsebene, Himmelsrichtungen); toolbar pause, "Neu loslassen", Zeitraffer slider in 1-2-5 steps; HUD
-Breitengrad, Drehung (°/h with sense), Volle Drehung, Zeit, Gedreht, Stifte. Cross-linked with the Kreisel.
+Breitengrad, Drehung (°/h with sense), Volle Drehung, Zeit, Gedreht, Stifte.

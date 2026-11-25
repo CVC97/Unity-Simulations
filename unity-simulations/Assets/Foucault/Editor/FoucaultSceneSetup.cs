@@ -48,6 +48,11 @@ public static class FoucaultSceneSetup {
     // Labels have a fixed size in the world: beside the platform the orbiting camera came close and they grew huge;
     // on the axis they stay at the orbit distance like everything else.
     private static readonly Vector3 OmegaAnchor = new Vector3(0f, 2f, 0f);
+    // the light: an oculus straight above the platform's centre, its pool just beyond the swing at the slider's end
+    private const float OculusHeight = 13f;             // m above the floor, 2.3 m below the suspension
+    private const float PoolRadius = 1.9f;              // m on the platform (the swing reaches 1.6 m, the ticks start at 2.16)
+    // labels shrink when the camera comes closer than this, so they never grow beyond their size in the start view
+    private const float LabelNearDistance = 6f;
 
     // the scale against the original toy top (camera 0.5 m): the Kreisel is 4, this hall about 2.6 times the Kreisel
     private const float SceneScale = 10f;
@@ -117,7 +122,7 @@ public static class FoucaultSceneSetup {
 
     private static bool BuildHall(Scene scene) {
         // the Kreisel's objects (the scene is a copy of its scene) and this step's own from an earlier run
-        foreach (string name in new[] { "Gyroscope", "LecturePedestal", "Helpers", "WebBridge", "Floor", "Hall", "ViewTarget" }) {
+        foreach (string name in new[] { "Gyroscope", "LecturePedestal", "Helpers", "WebBridge", "Floor", "Hall", "ViewTarget", "LightShaft" }) {
             Transform old = FindInScene(scene, name);
             if (old != null) Object.DestroyImmediate(old.gameObject);
         }
@@ -126,31 +131,33 @@ public static class FoucaultSceneSetup {
             for (int i = labels.childCount - 1; i >= 0; i--) Object.DestroyImmediate(labels.GetChild(i).gameObject);
         }
 
+        // the shared materials only (Carlo, 2026-11-25): the noir difference is in the light (see the oculus below).
+        // The platform is the shared black: only what lies on it catches the light (pins, trace, the bob's highlight),
+        // as in the start page's thumbnail; with the floor's grey the pool read as a grey disk. The bob is the
+        // Kreisel's dark steel, lit from above. The floor is never in the light (the pool ends on the platform), so it
+        // is unlit black: it hides the snow falling below the platform and catches nothing; lit, it mirrored the
+        // studio cubemap at grazing angles as a grey plane with a horizon, which no ambient setting removes.
+        Dictionary<string, Material> shared = NoirEditor.LectureMaterials();
         var m = new Dictionary<string, Material> {
-            ["Floor"] = Lit("FoucaultFloor", new Color(0.2f, 0.2f, 0.2f), 0f, 0.08f),          // rough: no glare (Kreisel)
-            // the Kreisel's metals: the noir keeps colour for the vectors. The disk is the big surface in the spot, so
-            // it is as dark as the Kreisel's floor reads, not its cast iron (small parts there): blackened iron, rough
-            // enough that it doesn't mirror the studio reflection as a bright, bluish rectangle (as gloss lacquer did)
-            // little metal, so it doesn't pick up the studio reflection outside the spot and read grey all over
-            ["DarkIron"] = Lit("FoucaultDarkIron", new Color32(34, 34, 37, 255), 0.3f, 0.35f),
-            // the bob: darker and more satin than the Kreisel's dark steel, so it doesn't glare in the spot
-            ["Bob"] = Lit("FoucaultBob", new Color32(72, 74, 79, 255), 0.7f, 0.42f),
-            ["Chrome"] = Lit("FoucaultChrome", new Color32(235, 236, 240, 255), 0.95f, 0.85f),
-            ["Steel"] = Lit("FoucaultSteel", new Color32(215, 217, 222, 255), 0.8f, 0.72f),
-            ["Mount"] = Lit("FoucaultMount", new Color32(40, 40, 44, 255), 0.5f, 0.5f),
+            ["Floor"] = Glow("FoucaultVoid", Color.black, 1f),
+            ["Platform"] = shared["LectureBlack"],
+            ["Bob"] = shared["LectureDarkSteel"],
+            ["Chrome"] = shared["LectureChrome"],
+            ["Steel"] = shared["LectureSteel"],
+            ["Mount"] = shared["LectureCastIron"],
         };
         Mesh cylinder = NoirEditor.SmoothCylinder();
 
         Transform hall = NewRoot(scene, "Hall").transform;
 
-        // floor: a disk that ends in the dark like the Kreisel's (its edge 1.4 camera distances out; a floor to the
-        // horizon reads as a grey plane in the ambient light). Round, so it can turn along in the star view.
+        // floor: unlit black (see the materials above), only there to hide what falls below the platform. Round, so it
+        // can turn along in the star view.
         Transform floor = Cylinder("Floor", hall, 2 * FloorRadius, -0.001f, 0f, m["Floor"], cylinder);
         floor.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
 
-        // platform: dark iron disk, a chrome skirt, the degree ring (part of the apparatus, not a helper)
+        // platform: a disk, a chrome skirt, the degree ring (part of the apparatus, not a helper)
         Transform platform = Empty("Platform", hall, Vector3.zero);
-        Cylinder("Disk", platform, 2 * PlatformRadius, 0f, PlatformTop, m["DarkIron"], cylinder);
+        Cylinder("Disk", platform, 2 * PlatformRadius, 0f, PlatformTop, m["Platform"], cylinder);
         Cylinder("Skirt", platform, 2 * PlatformRadius + 0.06f, 0f, PlatformTop - 0.008f, m["Chrome"], cylinder);
         Transform ticks = Empty("DegreeRing", platform, new Vector3(0f, PlatformTop + 0.001f, 0f));
         ticks.gameObject.AddComponent<MeshFilter>().sharedMesh = StoreMesh(DegreeRingMesh(), "DegreeRing");
@@ -244,35 +251,75 @@ public static class FoucaultSceneSetup {
         cam.nearClipPlane = 0.1f;
         cam.farClipPlane = 80f;
 
-        // the spot pool: high above, slightly to the side, the whole platform in it; the wire runs up out of it into
-        // the dark. Same illuminance on the floor as the Kreisel's key light (1/r²).
+        // the light: an oculus in the dome (Carlo, 2026-11-25). The Kreisel's soft spot from the side, even dimmed and
+        // narrowed, left the flat platform a large evenly lit mid-grey area: the Kreisel is a tall silhouette, this
+        // apparatus lies flat. Here a hard, narrow shaft comes straight down; its pool ends just outside the reach of
+        // the swing at the slider's end (1.6 m), everything else is black. The degree ring and the letters glow on
+        // their own and float as a thin circle in the dark; the bob gets a white cap and casts its shadow straight
+        // beneath itself, on the swing plane; the pins show bright heads. On the axis, so it is the same in the star
+        // view (the hall turns about the axis). Half the Kreisel's illuminance in its pool (Carlo, 2026-11-25: darker,
+        // as the start page's thumbnail, where the pool is only a glow on a black platform; at 760 the pool read as
+        // a light-grey disk). URP's range fade at half the range: × 0.88.
         Light key = FindInScene(scene, "KeyLight").GetComponent<Light>();
-        key.transform.position = new Vector3(2.2f, 8.5f, -2.6f);
-        key.transform.LookAt(new Vector3(0f, 0.3f, 0f));
-        key.range = 16f;
-        key.intensity = 430f;
-        key.spotAngle = 40f;                                                    // a pool about the platform, its rim fading
-        key.innerSpotAngle = 16f;                                               // (relative size as on the Kreisel)
+        key.type = LightType.Spot;
+        key.transform.position = new Vector3(0f, OculusHeight, 0f);
+        key.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
+        key.range = 2f * OculusHeight;
+        key.spotAngle = 2f * Mathf.Atan(PoolRadius / OculusHeight) * Mathf.Rad2Deg;                      // ≈ 16.6°
+        key.innerSpotAngle = 2f * Mathf.Atan((PoolRadius - 0.25f) / OculusHeight) * Mathf.Rad2Deg;       // a hard edge
+        key.intensity = 380f;
 
-        // ambient and reflections as on the Kreisel (metal needs something to reflect)
+        // the shaft made visible: dust in the light, an additive cone from the oculus down to the pool's rim, subtle
+        // (Carlo, 2026-11-25: as a URP Unlit cone like the Kreisel's helper cones it read as a solid, hard-edged
+        // column). Its own shader fades it towards its silhouette, like a real beam, and upwards.
+        Transform shaft = NewRoot(scene, "LightShaft").transform;
+        shaft.position = key.transform.position;
+        shaft.localScale = new Vector3(PoolRadius, OculusHeight - PlatformTop, PoolRadius);
+        shaft.gameObject.AddComponent<MeshFilter>().sharedMesh = StoreMesh(ShaftMesh(), "LightShaft");
+        var shaftRenderer = shaft.gameObject.AddComponent<MeshRenderer>();
+        shaftRenderer.sharedMaterial = ShaftMaterial(0.025f);
+        shaftRenderer.shadowCastingMode = ShadowCastingMode.Off;
+        shaftRenderer.receiveShadows = false;
+
+        // ambient far below the Kreisel's (0.09): outside the shaft the floor and platform are to be black, not dark
+        // grey, and the floor's edge no longer shows as a grey horizon (0.03 still did). The metals keep the Kreisel's
+        // studio reflections, so the wire, mount and skirt still show an edge.
         RenderSettings.skybox = null;
         RenderSettings.ambientMode = AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.09f, 0.09f, 0.095f);
+        RenderSettings.ambientLight = new Color(0.015f, 0.015f, 0.015f);
         RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
         RenderSettings.customReflectionTexture = AssetDatabase.LoadAssetAtPath<Cubemap>(ReflectionCubemapPath);
         RenderSettings.reflectionIntensity = 0.55f;
 
-        // snow scaled as a whole (it simulates in local space, flakes included) by the ratio of the camera distances
-        // (7.5 m / 2.9 m): it looks as on the Kreisel and stays around the platform, never around the camera
+        // snow through the hall, glittering in the shaft (Carlo, 2026-11-25). The Kreisel's flakes are lit by the spot
+        // alone; here their own material (a copy) glows faintly, so the flakes all around show dimly in the dark and
+        // only those in the shaft light up: depth, and the beam stays the brightest thing. The systems simulate in
+        // local space, so the transform scales the fall, the flakes and the noise together: uniform (a non-uniform one
+        // stretched the flakes), × 2.6. The emitter's shape (a sphere of radius 1; the Kreisel's is flattened to a
+        // disk) becomes a volume over the platform and a little beyond, 6 m high, so flakes are everywhere in view
+        // and none are born around the camera in the start view (6.4 m from the axis). Flakes about the Kreisel's
+        // size on screen at this camera distance would be 2.6 × 3.3 its startSize; half of that (Carlo: smaller).
         const float snowScale = 2.6f;
-        foreach (string name in new[] { "Snow", "Snow (fast)" }) {
+        const float snowTop = 6f;
+        const float snowRadius = 4.5f;
+        const float flakeScale = 1.6f;
+        Material flake = SnowflakeMaterial(0.12f);
+        foreach ((string name, float minSize, float maxSize, float rate) in new[] {
+                     ("Snow", 0.003f, 0.01f, 100f), ("Snow (fast)", 0.003f, 0.005f, 50f) }) {   // ≈ 0.6 flakes/s per m³
             Transform snow = FindInScene(scene, name);
             if (snow == null) continue;
-            snow.position = new Vector3(0f, 0.8f * snowScale, 0f);
-            snow.localScale = (name == "Snow" ? new Vector3(0.75f, 1f, 0.75f) : Vector3.one) * snowScale;
-            // fewer flakes than the Kreisel's 100/s: the bigger spot lights more of them
-            var emission = snow.GetComponent<ParticleSystem>().emission;
-            emission.rateOverTimeMultiplier = 40f;
+            snow.position = new Vector3(0f, snowTop / 2, 0f);
+            snow.localScale = Vector3.one * snowScale;
+            var system = snow.GetComponent<ParticleSystem>();
+            var shape = system.shape;
+            shape.radius = 1f;
+            shape.scale = new Vector3(snowRadius, snowTop / 2, snowRadius) / snowScale;
+            var main = system.main;
+            main.startSize = new ParticleSystem.MinMaxCurve(minSize * flakeScale, maxSize * flakeScale);
+            main.maxParticles = 5000;                                           // ≈ 1700 alive at 100/s
+            var emission = system.emission;
+            emission.rateOverTimeMultiplier = rate;
+            snow.GetComponent<ParticleSystemRenderer>().sharedMaterial = flake;
         }
 
         Debug.Log("Foucault hall built. Run 2 Add helpers and 3 Use web bridge next.");
@@ -343,11 +390,16 @@ public static class FoucaultSceneSetup {
         // labels: the Kreisel's style (drawn on top), each hides with its arrow; but without the black halo, which is
         // invisible against the Kreisel's black stage and showed here as a dark border over the lit platform
         Material labelMaterial = NoirEditor.LabelOverlayMaterial(MaterialFolder + "/FoucaultLabel.mat", Color.clear);
+        // Ω⃗ beyond its tip; its parts beside their middles, on the side away from Ω⃗ (as in a parallelogram drawing):
+        // at their tips, next to Ω⃗'s, the three overlapped in some views (Carlo's screenshots, 2026-11-25). F⃗_C beyond
+        // its tip and a little higher: seen end-on, the label sat on the bob.
         VectorLabelFor(labels, "LabelOmega", NoirEditor.VectorSymbol("Ω", 0.78f), White, labelMaterial, omega, 0.17f, 0f);
-        VectorLabelFor(labels, "LabelOmegaVertical", "<i>Ω</i> sin <i>φ</i>", LightGrey, labelMaterial, omegaVertical, 0f, 0.45f);
-        VectorLabelFor(labels, "LabelOmegaHorizontal", "<i>Ω</i> cos <i>φ</i>", LightGrey, labelMaterial, omegaHorizontal, 0.4f, 0f);
+        VectorLabelFor(labels, "LabelOmegaVertical", "<i>Ω</i> sin <i>φ</i>", LightGrey, labelMaterial, omegaVertical, 0f, 0.45f,
+                       along: 0.5f, awayFrom: omega);
+        VectorLabelFor(labels, "LabelOmegaHorizontal", "<i>Ω</i> cos <i>φ</i>", LightGrey, labelMaterial, omegaHorizontal, 0f, 0.2f,
+                       along: 0.5f, awayFrom: omega);
         VectorLabelFor(labels, "LabelCoriolis", NoirEditor.VectorSymbol("F", 0.78f) + "<sub>C</sub>", new Color32(224, 25, 47, 255),
-                       labelMaterial, coriolis, 0.17f, 0f);
+                       labelMaterial, coriolis, 0.17f, 0f, lift: 0.3f);
 
         var board = new SerializedObject(helpers.gameObject.AddComponent<FoucaultHelpers>());
         board.FindProperty("vectors").objectReferenceValue = vectors;
@@ -465,7 +517,8 @@ public static class FoucaultSceneSetup {
     }
 
     private static void VectorLabelFor(Transform labels, string name, string text, Color color, Material material,
-                                       VectorArrow3D arrow, float offset, float sideOffset) {
+                                       VectorArrow3D arrow, float offset, float sideOffset,
+                                       float along = 1f, VectorArrow3D awayFrom = null, float lift = 0f) {
         TextMeshPro tmp = NoirEditor.Label(labels, name, text, color, material);
         tmp.fontSize = 0.23f * SceneScale;
         tmp.fontStyle = FontStyles.Bold;
@@ -474,6 +527,10 @@ public static class FoucaultSceneSetup {
         label.FindProperty("arrow").objectReferenceValue = arrow;
         label.FindProperty("offset").floatValue = offset;
         label.FindProperty("sideOffset").floatValue = sideOffset;
+        label.FindProperty("along").floatValue = along;
+        label.FindProperty("awayFrom").objectReferenceValue = awayFrom;
+        label.FindProperty("lift").floatValue = lift;
+        label.FindProperty("nearDistance").floatValue = LabelNearDistance;     // close views: F_C at the bob grew huge
         label.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -523,6 +580,33 @@ public static class FoucaultSceneSetup {
         return mesh;
     }
 
+    // the light shaft: an open cone, apex at the origin, rim radius 1 at y = −1 (sized by the transform); UV v runs
+    // from 0 at the apex to 1 at the rim, for the fade (ShaftRamp). Both faces drawn by the material.
+    private static Mesh ShaftMesh() {
+        const int segments = 96;
+        var vertices = new List<Vector3>();
+        var uv = new List<Vector2>();
+        var triangles = new List<int>();
+        for (int i = 0; i <= segments; i++) {
+            float u = (float)i / segments, a = 2 * Mathf.PI * u;
+            vertices.Add(Vector3.zero);
+            uv.Add(new Vector2(u, 0f));
+            vertices.Add(new Vector3(Mathf.Cos(a), -1f, Mathf.Sin(a)));
+            uv.Add(new Vector2(u, 1f));
+        }
+        for (int i = 0; i < segments; i++) {
+            int b = 2 * i;                                                       // apex_i, rim_i, rim_i+1
+            triangles.AddRange(new[] { b, b + 1, b + 3 });
+        }
+        var mesh = new Mesh { name = "LightShaft" };
+        mesh.SetVertices(vertices);
+        mesh.SetUVs(0, uv);
+        mesh.SetTriangles(triangles, 0);
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        return mesh;
+    }
+
     // a generated mesh as an asset (the scene refers to it); an existing asset is overwritten in place, so references stay
     private static Mesh StoreMesh(Mesh built, string name) {
         string path = $"{MeshFolder}/{name}.asset";
@@ -534,6 +618,7 @@ public static class FoucaultSceneSetup {
         existing.Clear();
         existing.SetVertices(built.vertices);
         existing.SetNormals(built.normals);
+        if (built.uv.Length > 0) existing.SetUVs(0, built.uv);
         existing.SetTriangles(built.triangles, 0);
         existing.RecalculateBounds();
         EditorUtility.SetDirty(existing);
@@ -552,19 +637,6 @@ public static class FoucaultSceneSetup {
             AssetDatabase.CreateAsset(mat, path);
         }
         mat.shader = Shader.Find(shader);
-        return mat;
-    }
-
-    // URP/Lit with colour, metallic and smoothness (no emission: the apparatus only shines where the spot hits it)
-    private static Material Lit(string name, Color color, float metallic, float smoothness) {
-        Material mat = LoadOrCreate(name, "Universal Render Pipeline/Lit");
-        mat.SetColor("_BaseColor", color);
-        mat.SetFloat("_Metallic", metallic);
-        mat.SetFloat("_Smoothness", smoothness);
-        mat.SetColor("_EmissionColor", Color.black);
-        mat.DisableKeyword("_EMISSION");
-        mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-        EditorUtility.SetDirty(mat);
         return mat;
     }
 
@@ -646,6 +718,33 @@ public static class FoucaultSceneSetup {
         if (isNew) AssetDatabase.CreateAsset(tex, path);
         else EditorUtility.SetDirty(tex);
         return tex;
+    }
+
+    // a copy of the shared snowflake (URP Particles/Simple Lit, lit by the spot alone) with a faint grey glow of its
+    // own (× glow, under the bloom), so flakes outside the light still show dimly
+    private static Material SnowflakeMaterial(float glow) {
+        string path = $"{MaterialFolder}/FoucaultSnowflake.mat";
+        if (AssetDatabase.LoadAssetAtPath<Material>(path) == null) {
+            AssetDatabase.CopyAsset($"{SharedMaterialFolder}/Snowflake.mat", path);
+        }
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+        mat.SetColor("_EmissionColor", new Color(glow, glow, glow, 1f));
+        mat.EnableKeyword("_EMISSION");
+        EditorUtility.SetDirty(mat);
+        return mat;
+    }
+
+    // the visible light shaft (Shared/Shaders/LightShaft.shader): soft at its silhouette, fading upwards as v⁵
+    // (about a tenth left 4 m up, the top of the start view). Intensity is the one value to tune.
+    private static Material ShaftMaterial(float intensity) {
+        Material mat = LoadOrCreate("FoucaultShaft", "Noir/LightShaft");
+        mat.SetColor("_Color", Color.white);
+        mat.SetFloat("_Intensity", intensity);
+        mat.SetFloat("_EdgePower", 1.5f);
+        mat.SetFloat("_FadePower", 5f);
+        mat.renderQueue = (int)RenderQueue.Transparent;
+        EditorUtility.SetDirty(mat);
+        return mat;
     }
 
     private static Material Shared(string name) => AssetDatabase.LoadAssetAtPath<Material>($"{SharedMaterialFolder}/{name}.mat");

@@ -13,6 +13,52 @@ public static class NoirEditor {
     private const string CylinderMeshPath = "Assets/Shared/Meshes/SmoothCylinder.asset";
 
 
+    // ---- the shared apparatus materials: every simulation uses these, so the collection looks like one (Carlo,
+    // 2026-11-25). Values tuned on the Kreisel's screenshots (design notes, section 4). A scene that needs something
+    // else (the Kreisel's lacquer and disk, ...) keeps it in its own folder; the noir difference between scenes comes
+    // from the light, not the materials.
+
+    public const string SharedMaterialFolder = "Assets/Shared/Materials";
+
+    public static Dictionary<string, Material> LectureMaterials() {
+        return new Dictionary<string, Material> {
+            // metals partly diffuse, so they show their shape in the spot and not only in the (dim) reflections
+            ["LectureSteel"] = Lit("LectureSteel", new Color32(215, 217, 222, 255), 0.8f, 0.72f),
+            // glossy, since the Kreisel's rim light reaches no upward face; the white balls of its first versions were
+            // the rim light mirrored in horizontal tops, not the gloss itself
+            ["LectureChrome"] = Lit("LectureChrome", new Color32(235, 236, 240, 255), 0.95f, 0.85f),
+            ["LectureDarkSteel"] = Lit("LectureDarkSteel", new Color32(125, 128, 135, 255), 0.75f, 0.62f),
+            ["LectureCastIron"] = Lit("LectureCastIron", new Color32(105, 107, 113, 255), 0.55f, 0.45f),
+            // rough: seen at a grazing angle against the spot, a smoother floor's Fresnel highlight bloomed
+            ["LectureFloor"] = Lit("LectureFloor", new Color(0.2f, 0.2f, 0.2f), 0f, 0.08f),
+            // a large surface in the light that should stay black, so only what lies on it catches the light (the
+            // Foucault platform, Carlo 2026-11-25: with the floor's grey the pool read as a grey disk). Neutral, no
+            // metal, almost no gloss: anything more mirrors the studio cubemap as a grey or bluish sheen
+            ["LectureBlack"] = Lit("LectureBlack", new Color32(12, 12, 12, 255), 0f, 0.05f),
+        };
+    }
+
+    // URP/Lit with colour, metallic and smoothness, no emission; created in the shared folder or updated in place
+    private static Material Lit(string name, Color color, float metallic, float smoothness) {
+        string path = $"{SharedMaterialFolder}/{name}.mat";
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (mat == null) {
+            mat = new Material(shader) { name = name };
+            AssetDatabase.CreateAsset(mat, path);
+        }
+        mat.shader = shader;
+        mat.SetColor("_BaseColor", color);
+        mat.SetFloat("_Metallic", metallic);
+        mat.SetFloat("_Smoothness", smoothness);
+        mat.SetColor("_EmissionColor", Color.black);
+        mat.DisableKeyword("_EMISSION");
+        mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+        EditorUtility.SetDirty(mat);
+        return mat;
+    }
+
+
     // "Root/Child/Grandchild"; unlike GameObject.Find it also finds inactive objects
     public static Transform FindInScene(Scene scene, string path) {
         string[] parts = path.Split('/', 2);

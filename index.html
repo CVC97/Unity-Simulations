@@ -21,27 +21,36 @@
       aber mit Zeitlupe, Pause und den Größen, die man im Hörsaal nicht sieht.
     </p>
 
-    <!-- one card per simulation; each lives in its own folder (page + build) -->
-    <nav class="cards" aria-label="Versuche">
-      <a class="card" href="gyroscope/">
-        <span class="tag label-caps">Mechanik · Starrer Körper</span>
-        <h2>Vorlesungskreisel</h2>
-        <p>Ein Kreisel auf einer Spitze: hängend, ausbalanciert, kopflastig. Präzession, Nutation und die drei Kegel.</p>
-        <span class="open label-caps">
-          Öffnen
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
-        </span>
-      </a>
-      <a class="card" href="foucault/">
-        <span class="tag label-caps">Mechanik · Bewegte Bezugssysteme</span>
-        <h2>Foucault-Pendel</h2>
-        <p>Ein Pendel zeigt die Drehung der Erde: in Göttingen, am Pol, am Äquator und im Süden. Corioliskraft und
-        Zeitraffer.</p>
-        <span class="open label-caps">
-          Öffnen
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
-        </span>
-      </a>
+    <!-- one row per simulation, numbered in the order of the lecture (Experimentalphysik 1); each lives in its own
+         folder (page + build), its thumbnail in assets/thumbs/ -->
+    <nav aria-label="Versuche">
+      <ol class="experiments">
+        <li>
+          <a class="experiment" href="foucault/">
+            <span class="num">01</span>
+            <img class="thumb" src="assets/thumbs/foucault.svg" alt="" width="160" height="120">
+            <span class="head">
+              <span class="tag label-caps">Mechanik · Bewegte Bezugssysteme</span>
+              <h2>Foucault-Pendel</h2>
+            </span>
+            <p>Ein Pendel zeigt die Drehung der Erde: in Göttingen, am Pol, am Äquator und im Süden. Corioliskraft und
+            Zeitraffer.</p>
+            <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
+          </a>
+        </li>
+        <li>
+          <a class="experiment" href="gyroscope/">
+            <span class="num">02</span>
+            <img class="thumb" src="assets/thumbs/gyroscope.svg" alt="" width="160" height="120">
+            <span class="head">
+              <span class="tag label-caps">Mechanik · Starrer Körper</span>
+              <h2>Vorlesungskreisel</h2>
+            </span>
+            <p>Ein Kreisel auf einer Spitze: hängend, ausbalanciert, kopflastig. Präzession, Nutation und die drei Kegel.</p>
+            <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
+          </a>
+        </li>
+      </ol>
     </nav>
   </main>
 
