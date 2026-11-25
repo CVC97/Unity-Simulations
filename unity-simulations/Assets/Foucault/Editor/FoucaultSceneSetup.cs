@@ -360,13 +360,16 @@ public static class FoucaultSceneSetup {
         // compass letters on the platform's edge, readable from the south (north at the top, like a map)
         Transform compass = Empty("Compass", helpers, new Vector3(0f, PlatformTop + 0.001f, 0f));
         Material letterMaterial = TMP_Settings.defaultFontAsset.material;          // lit by nothing, drawn in the scene (no overlay)
+        // each letter in a plain holder at its place: set directly on the text's RectTransform (under a plain
+        // Transform), x was lost when the scene was saved, and O and W lay on top of each other in the platform's
+        // centre in the build (2026-11-25; z survived, so N and S were right)
         foreach ((string letter, float azimuthDeg) in new[] { ("N", 90f), ("O", 0f), ("S", 270f), ("W", 180f) }) {
-            TextMeshPro text = NoirEditor.Label(compass, letter, letter, LightGrey, letterMaterial);
+            float a = azimuthDeg * Mathf.Deg2Rad;
+            Transform holder = Empty("Letter" + letter, compass, new Vector3(LetterRadius * Mathf.Cos(a), 0f, LetterRadius * Mathf.Sin(a)));
+            holder.localRotation = Quaternion.Euler(90f, 0f, 0f);              // lying, facing up, top to the north
+            TextMeshPro text = NoirEditor.Label(holder, letter, letter, LightGrey, letterMaterial);
             text.fontSize = 2.2f;
             text.fontStyle = FontStyles.Bold;
-            float a = azimuthDeg * Mathf.Deg2Rad;
-            text.transform.localPosition = new Vector3(LetterRadius * Mathf.Cos(a), 0f, LetterRadius * Mathf.Sin(a));
-            text.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);       // lying, facing up, top to the north
         }
 
         // vectors: Ω (white) and its two parts (light grey) beside the platform, the Coriolis force (red) at the bob

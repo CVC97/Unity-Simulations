@@ -247,6 +247,10 @@ scenario tabs on top of the stage, a toolbar under it, a side panel beside it (b
   class; renamed serialized fields need `[FormerlySerializedAs]` (the controller's `rig` was `lectureRig`).
 - Batch mode needs the editor closed for that project (lock file).
 - The TMP font assets get re-serialized by TextMeshPro now and then; don't commit those changes by accident.
+- **Static TextMeshPro objects: position a plain parent, not the text.** A setup script that set `localPosition` on a
+  TMP text (a RectTransform) under a plain Transform kept only z when the scene was saved: the Foucault's O and W ended
+  up in the platform's centre in the build, while the editor still showed them right. Labels moved at runtime
+  (`VectorLabel`) aren't affected.
 - Precession repo pitfalls (shadowing, struct copies, prefabs, pink shaders from Editor folders, build profiles
   override Player settings, Strip Engine Code) apply here too: its `design_notes.md`, section 6.
 
